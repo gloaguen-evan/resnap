@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="resnap_logo.png" alt="resnap logo" style="width:100%; max-width:600px;"/>
+  <img src="logo.png" alt="resnap logo" style="width:100%; max-width:600px;"/>
 </p>
 
 <h1 align="center">resnap</h1>
