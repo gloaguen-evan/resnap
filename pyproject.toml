@@ -1,0 +1,70 @@
+[build-system]
+requires = ["hatchling >= 1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "resnap"
+dynamic = ["version"]
+description = "A Python library that captures and replays function results to save time, boost performance."
+authors = [ {name = "Evan Gloaguen", email = "evan.gloaguen@gmail.com"} ]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/gloaguen-evan/resnap"
+keywords = [ "python", "cache", "function", "method", "snapshot", "results", "checkpoint", "save" ]
+classifiers = [ 
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Libraries",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.9, <3.14"
+
+[project.urls]
+Repository = "https://github.com/gloaguen-evan/resnap"
+Changelog = "https://github.com/gloaguen-evan/resnap/releases"
+Issues = "https://github.com/gloaguen-evan/issues"
+
+[dependency-groups]
+dev = [
+    'pytest',
+    'pytest-cov',
+    'pytest-mock',
+    'pytest-asyncio',
+    'packaging',
+]
+
+[tool.black]
+line-length = 120
+
+[tool.isort]
+profile = "black"
+line_length = 120
+known_first_party = [ "src", "tests" ]
+
+[tool.hatch.version]
+path = 'resnap/version.py'
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.sdist]
+# limit which files are included in the sdist (.tar.gz) asset,
+include = [
+    '/README.md',
+    '/Makefile',
+    '/resnap',
+    '/tests',
+    'art',
+]
+
+[tool.pytest.ini_options]
+testpaths = 'tests'
+
+[tool.uv]
+default-groups = ['dev']
