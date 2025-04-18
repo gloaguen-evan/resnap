@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="resnap logo" style="width:100%; max-width:600px;"/>
+  <img src="art/logo.png" alt="resnap logo" style="width:100%; max-width:600px;"/>
 </p>
 
 <h1 align="center">resnap</h1>
@@ -13,10 +13,14 @@
 
 ## 🚀 Features
 
-- Snapshot and cache function outputs on disk
+- Snapshot and cache function/method outputs on disk
 - Avoid re-executing code when inputs haven’t changed
-- Supports multiple formats: `pickle`, `json`, `csv`, `txt` and `parquet`.
+- Supports multiple formats: 
+  - For pd.DataFrame objects: `parquet` (default) and `csv`
+  - For other objects: `pkl` (default), `json`, and `txt`.  
+  (Note that for the "json" format, the object type must be compatible with the json.dump method.)
 - Stores metadata automatically
+- Add custom metadata
 - Minimal setup, flexible usage
 
 ---
