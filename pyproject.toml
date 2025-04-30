@@ -24,20 +24,17 @@ classifiers = [
     "Programming Language :: Python :: 3.12",
 ]
 requires-python = ">=3.9, <3.14"
+dependencies = [
+    "configparser>=7.2.0",
+    "pandas>=2.2.3",
+    "pydantic>=2.11.3",
+    "toml>=0.10.2",
+]
 
 [project.urls]
 Repository = "https://github.com/gloaguen-evan/resnap"
 Changelog = "https://github.com/gloaguen-evan/resnap/releases"
 Issues = "https://github.com/gloaguen-evan/issues"
-
-[dependency-groups]
-dev = [
-    'pytest',
-    'pytest-cov',
-    'pytest-mock',
-    'pytest-asyncio',
-    'packaging',
-]
 
 [tool.black]
 line-length = 120
@@ -47,8 +44,17 @@ profile = "black"
 line_length = 120
 known_first_party = [ "src", "tests" ]
 
+[tool.resnap]
+enabled = true
+save_to = "local"
+output_base_path = ""
+secrets_file_name = "test-secrets.yml"
+enable_remove_old_files = true
+max_history_files_length = 2
+max_history_files_time_unit = "second"
+
 [tool.hatch.version]
-path = 'resnap/version.py'
+path = "resnap/version.py"
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -56,15 +62,30 @@ allow-direct-references = true
 [tool.hatch.build.targets.sdist]
 # limit which files are included in the sdist (.tar.gz) asset,
 include = [
-    '/README.md',
-    '/Makefile',
-    '/resnap',
-    '/tests',
-    'art',
+    "/README.md",
+    "/Makefile",
+    "/resnap",
+    "/tests",
+    "/art",
 ]
 
 [tool.pytest.ini_options]
-testpaths = 'tests'
+testpaths = "tests"
 
 [tool.uv]
-default-groups = ['dev']
+default-groups = ["dev"]
+
+[dependency-groups]
+boto = [
+    "boto3>=1.38.5",
+]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "pytest-asyncio",
+    "packaging",
+    "flake8>=7.2.0",
+    "dependency-injector>=4.46.0",
+    "freezegun>=1.5.1",
+]

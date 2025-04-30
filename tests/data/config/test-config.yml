@@ -1,0 +1,8 @@
+resnap:
+  enabled: True
+  save_to: local
+  output_base_path: ""
+  secrets_file_name: "test-secrets.yml"
+  enable_remove_old_files: True
+  max_history_files_length: 3
+  max_history_files_time_unit: second
