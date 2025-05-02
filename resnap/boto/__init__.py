@@ -1,3 +1,8 @@
+import importlib.util
+
+if importlib.util.find_spec("boto3") is None:
+    raise ImportError("Please install the boto extra to save to S3: `pip install resnap[boto]`")
+
 from .connection import get_s3_connection
 from .download_operations import download_file, get_df_from_file
 from .internal_operations import (
