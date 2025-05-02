@@ -27,8 +27,14 @@
 
 ## 📦 Installation
 
+To test in local mode
 ```bash
 pip install resnap
+```
+
+If you want to use a S3 solution
+```bash
+pip install resnap[boto]
 ```
 
 ## 🧪 Quick Example

@@ -1,5 +1,5 @@
 """Defines the public resnap interface"""
-from .decorators import resnap, async_resnap
+from .decorators import async_resnap, resnap
 from .exceptions import ResnapError
 from .factory import set_resnap_service
 from .services.service import ResnapService

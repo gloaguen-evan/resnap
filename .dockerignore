@@ -1,0 +1,6 @@
+.idea/
+.vscode/
+.nox/
+noxfile.py
+nox-settings.yml
+.venv/

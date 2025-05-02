@@ -1,0 +1,13 @@
+[project]
+name = "test_integration"
+version = "0.1.0"
+description = "Test integration"
+
+[tool.resnap]
+enabled = true
+save_to = "local"
+output_base_path = "results"
+secrets_file_name = ""
+enable_remove_old_files = true
+max_history_files_length = 3
+max_history_files_time_unit = "second"
