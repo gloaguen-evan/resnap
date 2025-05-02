@@ -1,9 +1,8 @@
 import functools
+import logging
 from collections.abc import Callable, Coroutine
 from datetime import datetime
 from typing import Any, Optional, ParamSpec, TypeVar
-
-import logging
 
 from .exceptions import ResnapError
 from .factory import ResnapServiceFactory

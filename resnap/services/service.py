@@ -5,7 +5,7 @@ from typing import Any, Optional
 import pandas as pd
 
 from ..helpers.config import Config
-from ..helpers.constants import SEPATOR, EXT
+from ..helpers.constants import EXT, SEPATOR
 from ..helpers.metadata import Metadata, MetadataFail, MetadataSuccess
 from ..helpers.singleton import SingletonABCMeta
 from ..helpers.status import Status

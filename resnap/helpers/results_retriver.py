@@ -1,6 +1,5 @@
-from typing import Any, Callable
-
 import logging
+from typing import Any, Callable
 
 from ..services.service import ResnapService
 from .metadata import Metadata

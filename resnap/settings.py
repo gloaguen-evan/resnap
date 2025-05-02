@@ -1,6 +1,8 @@
-import os
-import toml
 import logging
+import os
+
+import toml
+
 from .helpers.config import Config
 
 CONFIG_SECTIONS: dict[str, str] = {
