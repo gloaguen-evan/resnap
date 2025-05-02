@@ -2,23 +2,12 @@ import io
 import json
 import pickle
 from datetime import datetime
-from typing import Any
+from typing import Any, Optional
 
 import pandas as pd
 
-from ..boto import (
-    delete_in_bucket,
-    download_file,
-    exists_in_bucket,
-    get_df_from_file,
-    get_s3_connection,
-    is_s3_dir,
-    list_dir_in_bucket,
-    mkdir_in_bucket,
-    push_df_to_file,
-    push_to_file,
-    rmdir_in_bucket,
-)
+from ..boto import S3Client, S3Config
+from ..helpers.config import Config
 from ..helpers.constants import EXT, SEPATOR
 from ..helpers.metadata import Metadata
 from ..helpers.status import Status
@@ -27,41 +16,60 @@ from .service import ResnapService
 
 
 class BotoResnapService(ResnapService):
+    def __init__(self, config: Config, secrets: Optional[dict] = None) -> None:
+        super().__init__(config)
+        self._client: S3Client = S3Client(S3Config(**secrets))
+
     @staticmethod
     def _format_path(path: str) -> str:
         return path if path.endswith(SEPATOR) else f"{path}{SEPATOR}"
 
     def clear_old_saves(self) -> None:
+        if not self._client.object_exists(self._format_path(self.config.output_base_path)):
+            return
+
+        contents = self._client.list_objects(self.config.output_base_path, True)
+        empty_folders: list[str] = self._clear_files(contents)
+        if empty_folders:
+            self._clear_folders(empty_folders)
+
+    def _clear_files(self, files: list[str]) -> list[str]:
         limit_time: datetime = calculate_datetime_from_now(
             self.config.max_history_files_length, self.config.max_history_files_time_unit
         )
-        with get_s3_connection(**self.secrets) as con:
-            if not exists_in_bucket(self._format_path(self.config.output_base_path), con):
-                return
-            contents = list_dir_in_bucket(self.config.output_base_path, con, True)
-            folders: set = set()
-            for content in contents:
-                if is_s3_dir(content, con):
-                    folders.add(content)
-                    continue
-                if EXT not in content:
-                    continue
-                file_time = get_datetime_from_filename(content)
-                if file_time < limit_time:
-                    delete_in_bucket(content, con)
-            for folder in folders:
-                contents = list_dir_in_bucket(folder, con)
-                if not contents:
-                    rmdir_in_bucket(folder, con)
+
+        folders: set = set()
+        to_delete: list = []
+        for file in files:
+            if file.endswith(SEPATOR):
+                folders.add(file)
+                continue
+            if EXT not in file:
+                continue
+            file_time = get_datetime_from_filename(file)
+            if file_time < limit_time:
+                to_delete.append(file)
+
+        if to_delete:
+            self._client.delete_objects(to_delete)
+        return folders
+
+    def _clear_folders(self, folders: set[str]) -> None:
+        to_delete = []
+        for folder in folders:
+            contents = self._client.list_objects(folder)
+            if not contents:
+                to_delete.append(folder)
+        if to_delete:
+            self._client.delete_objects(to_delete)
 
     def _create_folder(self, path: str, folder_name: str) -> None:
-        with get_s3_connection(**self.secrets) as con:
-            if path and not exists_in_bucket(self._format_path(path), con):
-                mkdir_in_bucket(path, con)
-            if folder_name:
-                output_path = SEPATOR.join([path, folder_name])
-                if not exists_in_bucket(self._format_path(output_path), con):
-                    mkdir_in_bucket(output_path, con)
+        if path and not self._client.object_exists(self._format_path(path)):
+            self._client.mkdir(path)
+        if folder_name:
+            output_path = SEPATOR.join([path, folder_name])
+            if not self._client.object_exists(self._format_path(output_path)):
+                self._client.mkdir(output_path)
 
     def _read_metadata(self, metadata_path: str) -> Metadata:
         with self._get_buffer_for_read_file(metadata_path) as buffer:
@@ -70,11 +78,10 @@ class BotoResnapService(ResnapService):
         return Metadata.from_dict(data)
 
     def get_success_metadatas(self, func_name: str, output_folder: str) -> list[Metadata]:
-        with get_s3_connection(**self.secrets) as con:
-            files: list[str] = [
-                file for file in list_dir_in_bucket(self._get_output_path(output_folder), con)
-                if func_name in file and file.endswith(EXT)
-            ]
+        files: list[str] = [
+            file for file in self._client.list_objects(self._get_output_path(output_folder))
+            if func_name in file and file.endswith(EXT)
+        ]
 
         if not files:
             return []
@@ -83,18 +90,14 @@ class BotoResnapService(ResnapService):
         return [m for m in metadatas if m.status == Status.SUCCESS]
 
     def _read_parquet_to_dataframe(self, file_path: str) -> pd.DataFrame:
-        with get_s3_connection(**self.secrets) as con:
-            return get_df_from_file(file_path, con, file_format="parquet")
+        return self._client.get_df_from_file(file_path, file_format="parquet")
 
     def _read_csv_to_dataframe(self, file_path: str) -> pd.DataFrame:
-        with get_s3_connection(**self.secrets) as con:
-            return get_df_from_file(file_path, con, file_format="csv")
+        return self._client.get_df_from_file(file_path, file_format="csv")
 
     def _get_buffer_for_read_file(self, file_path: str) -> io.BytesIO:
         buffer = io.BytesIO()
-
-        with get_s3_connection(**self.secrets) as con:
-            download_file(file_path, buffer, con)
+        self._client.download_file(file_path, buffer)
         buffer.seek(0)
         return buffer
 
@@ -111,17 +114,14 @@ class BotoResnapService(ResnapService):
             return json.load(buffer)
 
     def _save_dataframe_to_csv(self, result: pd.DataFrame, result_path: str) -> None:
-        with get_s3_connection(**self.secrets) as con:
-            push_df_to_file(result, result_path, con, file_format="csv")
+        self._client.push_df_to_file(result, result_path, file_format="csv")
 
     def _save_dataframe_to_parquet(self, result: pd.DataFrame, result_path: str) -> None:
-        with get_s3_connection(**self.secrets) as con:
-            push_df_to_file(result, result_path, con, compression="gzip", file_format="parquet")
+        self._client.push_df_to_file(result, result_path, compression="gzip", file_format="parquet")
 
     def _save_buffer(self, buffer: io.BytesIO, result_path: str) -> None:
         buffer.seek(0)
-        with get_s3_connection(**self.secrets) as con:
-            push_to_file(buffer, result_path, con)
+        self._client.push_to_file(buffer, result_path)
 
     def _save_to_pickle(self, result: Any, result_path: str) -> None:
         with io.BytesIO() as buffer:

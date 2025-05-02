@@ -12,9 +12,8 @@ from ..helpers.status import Status
 
 
 class ResnapService(ABC, metaclass=SingletonABCMeta):
-    def __init__(self, config: Config, secrets: Optional[dict] = None):
+    def __init__(self, config: Config) -> None:
         self.config: Config = config
-        self.secrets = secrets
 
     @property
     def is_enabled(self) -> bool:
