@@ -17,7 +17,7 @@ def get_config_data() -> Config:
     if file_path.endswith(".toml"):
         config = toml.load(file_path)
         tools = config.get("tool", {})
-        settings = tools.get(CONFIG_SECTIONS["pyproject.toml"], Config(enabled=True))
+        settings = tools.get(CONFIG_SECTIONS["pyproject.toml"], {"enabled": True})
         return Config(**settings)
     else:
         logger.warning(f"Unsupported file type: {file_path}.")
@@ -31,7 +31,8 @@ def get_config_file_path() -> str:
     Returns:
         str: Path to the configuration file.
     """
+    exec_path: str = os.getcwd()
     for file_name in CONFIG_SECTIONS:
-        if file_name in os.listdir(os.getcwd()):
-            return os.path.join(os.getcwd(), file_name)
+        if file_name in os.listdir(exec_path):
+            return os.path.join(exec_path, file_name)
     return ""
