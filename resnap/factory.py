@@ -38,6 +38,7 @@ class ResnapServiceFactory:
             _service = LocalResnapService(_resnap_config)
         elif _resnap_config.save_to == Services.S3:
             from .services.boto_service import BotoResnapService
+
             # TODO: implement a way to get the secrets from the config
             temp_dict = {
                 "access_key": "toto",

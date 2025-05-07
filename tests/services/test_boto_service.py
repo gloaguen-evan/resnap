@@ -32,6 +32,36 @@ def mock_s3_client_delete_objects(mocker) -> MagicMock:
 
 
 @pytest.fixture
+def mock_s3_client_download_file(mocker) -> MagicMock:
+    mock: MagicMock = mocker.patch("resnap.services.boto_service.S3Client.download_file")
+    return mock
+
+
+@pytest.fixture
+def mock_s3_client_push_to_file(mocker) -> MagicMock:
+    mock: MagicMock = mocker.patch("resnap.services.boto_service.S3Client.push_to_file")
+    return mock
+
+
+@pytest.fixture
+def mock_s3_client_push_df_to_file(mocker) -> MagicMock:
+    mock: MagicMock = mocker.patch("resnap.services.boto_service.S3Client.push_df_to_file")
+    return mock
+
+
+@pytest.fixture
+def mock_s3_client_get_df_from_file(mocker) -> MagicMock:
+    mock: MagicMock = mocker.patch("resnap.services.boto_service.S3Client.get_df_from_file")
+    return mock
+
+
+@pytest.fixture
+def mock_s3_client_mkdir(mocker) -> MagicMock:
+    mock: MagicMock = mocker.patch("resnap.services.boto_service.S3Client.mkdir")
+    return mock
+
+
+@pytest.fixture
 def mock_read_metadata(mocker) -> MagicMock:
     mock: MagicMock = mocker.patch("resnap.services.boto_service.BotoResnapService._read_metadata")
     return mock
@@ -136,272 +166,274 @@ class TestBotoService:
         # Then
         mock_s3_client_list_objects.assert_not_called()
 
-    # def test_should_read_metadata(self, mock_s3_client: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     expected_metadata = MetadataSuccess(
-    #         status=Status.SUCCESS,
-    #         event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-    #         result_path="test_2021-01-01T00:00:00.resnap.pkl",
-    #         result_type="str",
-    #         hashed_arguments=hash_arguments({"test": "toto"}),
-    #     )
-    #     mock_download_file.side_effect = lambda path, buffer, con: buffer.write(
-    #         json.dumps(expected_metadata.to_dict()).encode()
-    #     )
+    def test_should_read_metadata(self, mock_s3_client_download_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        expected_metadata = MetadataSuccess(
+            status=Status.SUCCESS,
+            event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
+            result_path="test_2021-01-01T00:00:00.resnap.pkl",
+            result_type="str",
+            hashed_arguments=hash_arguments({"test": "toto"}),
+        )
+        mock_s3_client_download_file.side_effect = lambda path, buffer: buffer.write(
+            json.dumps(expected_metadata.to_dict()).encode()
+        )
 
-    #     # When
-    #     result = service._read_metadata("tests/data/metadata/test-metadata_2021-01-01T00:00:00.resnap")
+        # When
+        result = service._read_metadata("tests/data/metadata/test-metadata_2021-01-01T00:00:00.resnap")
 
-    #     # Then
-    #     assert isinstance(result, Metadata)
-    #     assert result == expected_metadata
+        # Then
+        assert isinstance(result, Metadata)
+        assert result == expected_metadata
 
-    # def test_should_return_metadatas(self, mock_s3_client.list_objects: MagicMock, mock_read_metadata: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     mock_s3_client.list_objects.return_value = [
-    #         "test-metadata_2021-01-01T00:00:00.resnap",
-    #         "test-metadata_2024-01-01T00:00:00.resnap",
-    #         "toto",
-    #         "toto_2021-01-02T00:00:00.resnap",
-    #         "test.csv",
-    #     ]
-    #     expected_metadatas = [
-    #         MetadataSuccess(
-    #             status=Status.SUCCESS,
-    #             event_time=datetime.fromisoformat("2024-01-01T00:00:00"),
-    #             result_path="test_2024-01-01T00:00:00.resnap.pkl",
-    #             result_type="str",
-    #             hashed_arguments=hash_arguments({}),
-    #         ),
-    #         MetadataSuccess(
-    #             status=Status.SUCCESS,
-    #             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-    #             result_path="test_2021-01-01T00:00:00.resnap.pkl",
-    #             result_type="str",
-    #             hashed_arguments=hash_arguments({}),
-    #         ),
-    #     ]
-    #     mock_read_metadata.side_effect = expected_metadatas
+    def test_should_return_metadatas(
+        self,
+        mock_s3_client_list_objects: MagicMock,
+        mock_read_metadata: MagicMock,
+    ) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        mock_s3_client_list_objects.return_value = [
+            "test-metadata_2021-01-01T00:00:00.resnap",
+            "test-metadata_2024-01-01T00:00:00.resnap",
+            "toto",
+            "toto_2021-01-02T00:00:00.resnap",
+            "test.csv",
+        ]
+        expected_metadatas = [
+            MetadataSuccess(
+                status=Status.SUCCESS,
+                event_time=datetime.fromisoformat("2024-01-01T00:00:00"),
+                result_path="test_2024-01-01T00:00:00.resnap.pkl",
+                result_type="str",
+                hashed_arguments=hash_arguments({}),
+            ),
+            MetadataSuccess(
+                status=Status.SUCCESS,
+                event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
+                result_path="test_2021-01-01T00:00:00.resnap.pkl",
+                result_type="str",
+                hashed_arguments=hash_arguments({}),
+            ),
+        ]
+        mock_read_metadata.side_effect = expected_metadatas
 
-    #     # When
-    #     result = service.get_success_metadatas("test", "")
+        # When
+        result = service.get_success_metadatas("test", "")
 
-    #     # Then
-    #     assert result == expected_metadatas
-    #     assert len(result) == 2
+        # Then
+        assert result == expected_metadatas
+        assert len(result) == 2
 
-    # def test_should_return_none_if_not_metadata(self, mock_s3_client.list_objects: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     mock_s3_client.list_objects.return_value = []
+    def test_should_return_none_if_not_metadata(self, mock_s3_client_list_objects: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        mock_s3_client_list_objects.return_value = []
 
-    #     # When
-    #     result = service.get_success_metadatas("test", "")
+        # When
+        result = service.get_success_metadatas("test", "")
 
-    #     # Then
-    #     assert len(result) == 0
+        # Then
+        assert len(result) == 0
 
-    # def test_should_write_metadata(self, mock_push_to_file: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     metadata = MetadataSuccess(
-    #         status=Status.SUCCESS,
-    #         event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-    #         result_path="test_2021-01-01T00:00:00.resnap.pkl",
-    #         result_type="str",
-    #         hashed_arguments=hash_arguments({"test": "toto"}),
-    #     )
-    #     mock_push_to_file.side_effect = lambda buffer, path, con: buffer.write(
-    #         json.dumps(metadata.to_dict()).encode()
-    #     )
+    def test_should_write_metadata(self, mock_s3_client_push_to_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        metadata = MetadataSuccess(
+            status=Status.SUCCESS,
+            event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
+            result_path="test_2021-01-01T00:00:00.resnap.pkl",
+            result_type="str",
+            hashed_arguments=hash_arguments({"test": "toto"}),
+        )
+        mock_s3_client_push_to_file.side_effect = lambda buffer, path: buffer.write(
+            json.dumps(metadata.to_dict()).encode()
+        )
 
-    #     # When
-    #     service._write_metadata("test_2021-01-01T00:00:00.resnap", metadata)
+        # When
+        service._write_metadata("test_2021-01-01T00:00:00.resnap", metadata)
 
-    #     # Then
-    #     mock_push_to_file.assert_called_once()
-    #     args, _ = mock_push_to_file.call_args
-    #     assert args[1] == "test_2021-01-01T00:00:00.resnap"
+        # Then
+        mock_s3_client_push_to_file.assert_called_once()
+        args, _ = mock_s3_client_push_to_file.call_args
+        assert args[1] == "test_2021-01-01T00:00:00.resnap"
 
-    # def test_should_save_dataframe_to_parquet(self, mock_push_df_to_file: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     result = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
-    #     result_path = "test.parquet"
+    def test_should_save_dataframe_to_parquet(self, mock_s3_client_push_df_to_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        result = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
+        result_path = "test.parquet"
 
-    #     # When
-    #     service._save_dataframe_to_parquet(result, result_path)
+        # When
+        service._save_dataframe_to_parquet(result, result_path)
 
-    #     # Then
-    #     mock_push_df_to_file.assert_called_once_with(
-    #         result, "test.parquet", ANY, compression='gzip', file_format="parquet"
-    #     )
+        # Then
+        mock_s3_client_push_df_to_file.assert_called_once_with(
+            result, "test.parquet", compression='gzip', file_format="parquet"
+        )
 
-    # def test_should_save_dataframe_to_csv(self, mock_push_df_to_file: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     result = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
-    #     result_path = "test.csv"
+    def test_should_save_dataframe_to_csv(self, mock_s3_client_push_df_to_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        result = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
+        result_path = "test.csv"
 
-    #     # When
-    #     service._save_dataframe_to_csv(result, result_path)
+        # When
+        service._save_dataframe_to_csv(result, result_path)
 
-    #     # Then
-    #     mock_push_df_to_file.assert_called_once_with(
-    #         result, "test.csv", ANY, file_format="csv"
-    #     )
+        # Then
+        mock_s3_client_push_df_to_file.assert_called_once_with(result, "test.csv", file_format="csv")
 
-    # def test_should_save_to_pickle(self, mock_push_to_file: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     result = {"key": "value"}
-    #     result_path = "test.pkl"
+    def test_should_save_to_pickle(self, mock_s3_client_push_to_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        result = {"key": "value"}
+        result_path = "test.pkl"
 
-    #     # When
-    #     service._save_to_pickle(result, result_path)
+        # When
+        service._save_to_pickle(result, result_path)
 
-    #     # Then
-    #     mock_push_to_file.assert_called_once()
-    #     args, _ = mock_push_to_file.call_args
-    #     assert args[1] == "test.pkl"
+        # Then
+        mock_s3_client_push_to_file.assert_called_once()
+        args, _ = mock_s3_client_push_to_file.call_args
+        assert args[1] == "test.pkl"
 
-    # def test_should_save_to_text(self, mock_push_to_file: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     result = "toto"
-    #     result_path = "test.txt"
+    def test_should_save_to_text(self, mock_s3_client_push_to_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        result = "toto"
+        result_path = "test.txt"
 
-    #     # When
-    #     service._save_to_text(result, result_path)
+        # When
+        service._save_to_text(result, result_path)
 
-    #     # Then
-    #     mock_push_to_file.assert_called_once()
-    #     args, _ = mock_push_to_file.call_args
-    #     assert args[1] == "test.txt"
+        # Then
+        mock_s3_client_push_to_file.assert_called_once()
+        args, _ = mock_s3_client_push_to_file.call_args
+        assert args[1] == "test.txt"
 
-    # def test_should_save_to_json(self, mock_push_to_file: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     result = {"key": "value"}
-    #     result_path = "test.json"
+    def test_should_save_to_json(self, mock_s3_client_push_to_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        result = {"key": "value"}
+        result_path = "test.json"
 
-    #     # When
-    #     service._save_to_json(result, result_path)
+        # When
+        service._save_to_json(result, result_path)
 
-    #     # Then
-    #     mock_push_to_file.assert_called_once()
-    #     args, _ = mock_push_to_file.call_args
-    #     assert args[1] == "test.json"
+        # Then
+        mock_s3_client_push_to_file.assert_called_once()
+        args, _ = mock_s3_client_push_to_file.call_args
+        assert args[1] == "test.json"
 
-    # def test_should_read_parquet_to_dataframe(self, mock_get_df_from_file: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     file_path = "test.parquet"
-    #     expected_df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
-    #     mock_get_df_from_file.return_value = expected_df
+    def test_should_read_parquet_to_dataframe(self, mock_s3_client_get_df_from_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        file_path = "test.parquet"
+        expected_df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
+        mock_s3_client_get_df_from_file.return_value = expected_df
 
-    #     # When
-    #     result = service._read_parquet_to_dataframe(file_path)
+        # When
+        result = service._read_parquet_to_dataframe(file_path)
 
-    #     # Then
-    #     pd.testing.assert_frame_equal(result, expected_df)
-    #     mock_get_df_from_file.assert_called_once_with("test.parquet", ANY, file_format="parquet")
+        # Then
+        pd.testing.assert_frame_equal(result, expected_df)
+        mock_s3_client_get_df_from_file.assert_called_once_with("test.parquet", file_format="parquet")
 
-    # def test_should_read_csv_to_dataframe(self, mock_get_df_from_file: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     file_path = "test.csv"
-    #     expected_df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
-    #     mock_get_df_from_file.return_value = expected_df
+    def test_should_read_csv_to_dataframe(self, mock_s3_client_get_df_from_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        file_path = "test.csv"
+        expected_df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
+        mock_s3_client_get_df_from_file.return_value = expected_df
 
-    #     # When
-    #     result = service._read_csv_to_dataframe(file_path)
+        # When
+        result = service._read_csv_to_dataframe(file_path)
 
-    #     # Then
-    #     pd.testing.assert_frame_equal(result, expected_df)
-    #     mock_get_df_from_file.assert_called_once_with("test.csv", ANY, file_format="csv")
+        # Then
+        pd.testing.assert_frame_equal(result, expected_df)
+        mock_s3_client_get_df_from_file.assert_called_once_with("test.csv", file_format="csv")
 
-    # def test_should_read_pickle(self, mock_download_file: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     file_path = "test.pkl"
-    #     expected_data = {"key": "value"}
-    #     mock_download_file.side_effect = lambda path, buffer, con: buffer.write(pickle.dumps(expected_data))
+    def test_should_read_pickle(self, mock_s3_client_download_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        file_path = "test.pkl"
+        expected_data = {"key": "value"}
+        mock_s3_client_download_file.side_effect = lambda path, buffer: buffer.write(pickle.dumps(expected_data))
 
-    #     # When
-    #     result = service._read_pickle(file_path)
+        # When
+        result = service._read_pickle(file_path)
 
-    #     # Then
-    #     assert result == expected_data
-    #     mock_download_file.assert_called_once_with(str(file_path), ANY, ANY)
+        # Then
+        assert result == expected_data
+        mock_s3_client_download_file.assert_called_once_with(str(file_path), ANY)
 
-    # def test_should_read_text(self, mock_download_file: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     file_path = "test.txt"
-    #     expected_data = "toto"
-    #     mock_download_file.side_effect = lambda path, buffer, con: buffer.write(expected_data.encode())
+    def test_should_read_text(self, mock_s3_client_download_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        file_path = "test.txt"
+        expected_data = "toto"
+        mock_s3_client_download_file.side_effect = lambda path, buffer: buffer.write(expected_data.encode())
 
-    #     # When
-    #     result = service._read_text(file_path)
+        # When
+        result = service._read_text(file_path)
 
-    #     # Then
-    #     assert result == expected_data
-    #     mock_download_file.assert_called_once_with(str(file_path), ANY, ANY)
+        # Then
+        assert result == expected_data
+        mock_s3_client_download_file.assert_called_once_with(str(file_path), ANY)
 
-    # def test_should_read_json(self, mock_download_file: MagicMock) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     file_path = "test.json"
-    #     expected_data = {"key": "value"}
-    #     mock_download_file.side_effect = (
-    #         lambda path, buffer, con: buffer.write(json.dumps(expected_data, indent=4).encode())
-    #     )
+    def test_should_read_json(self, mock_s3_client_download_file: MagicMock) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        file_path = "test.json"
+        expected_data = {"key": "value"}
+        mock_s3_client_download_file.side_effect = (
+            lambda path, buffer: buffer.write(json.dumps(expected_data, indent=4).encode())
+        )
 
-    #     # When
-    #     result = service._read_json(file_path)
+        # When
+        result = service._read_json(file_path)
 
-    #     # Then
-    #     assert result == expected_data
-    #     mock_download_file.assert_called_once_with(str(file_path), ANY, ANY)
+        # Then
+        assert result == expected_data
+        mock_s3_client_download_file.assert_called_once_with(str(file_path), ANY)
 
-    # @pytest.mark.parametrize(
-    #     "path, is_exists_path, folder_name, is_exists_folder, exist_count, mkdir_count",
-    #     [
-    #         ("toto", False, "folder", False, 2, 2),
-    #         ("toto", True, "folder", False, 2, 1),
-    #         ("toto", True, "folder", True, 2, 0),
-    #         ("toto", False, "", False, 1, 1),
-    #         ("toto", True, "", False, 1, 0),
-    #         ("", False, "folder", False, 1, 1),
-    #         ("", False, "folder", True, 1, 0),
-    #     ],
-    # )
-    # def test_should_create_folder(
-    #     self,
-    #     path: str,
-    #     is_exists_path: bool,
-    #     folder_name: str,
-    #     is_exists_folder: bool,
-    #     exist_count: int,
-    #     mkdir_count: int,
-    #     mock_s3_client.object_exists: MagicMock,
-    #     mock_mkdir_in_bucket: MagicMock,
-    # ) -> None:
-    #     # Given
-    #     service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
-    #     side_effects = []
-    #     if path:
-    #         side_effects.append(is_exists_path)
-    #     if folder_name:
-    #         side_effects.append(is_exists_folder)
-    #     mock_s3_client.object_exists.side_effect = side_effects
+    @pytest.mark.parametrize(
+        "path, is_exists_path, folder_name, is_exists_folder, exist_count, mkdir_count",
+        [
+            ("toto", False, "folder", False, 2, 2),
+            ("toto", True, "folder", False, 2, 1),
+            ("toto", True, "folder", True, 2, 0),
+            ("toto", False, "", False, 1, 1),
+            ("toto", True, "", False, 1, 0),
+            ("", False, "folder", False, 1, 1),
+            ("", False, "folder", True, 1, 0),
+        ],
+    )
+    def test_should_create_folder(
+        self,
+        path: str,
+        is_exists_path: bool,
+        folder_name: str,
+        is_exists_folder: bool,
+        exist_count: int,
+        mkdir_count: int,
+        mock_s3_client_mkdir: MagicMock,
+        mock_s3_client_object_exists: MagicMock,
+    ) -> None:
+        # Given
+        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        side_effects = []
+        if path:
+            side_effects.append(is_exists_path)
+        if folder_name:
+            side_effects.append(is_exists_folder)
+        mock_s3_client_object_exists.side_effect = side_effects
 
-    #     # When
-    #     service._create_folder(path, folder_name)
+        # When
+        service._create_folder(path, folder_name)
 
-    #     # Then
-    #     assert mock_s3_client.object_exists.call_count == exist_count
-    #     assert mock_mkdir_in_bucket.call_count == mkdir_count
+        # Then
+        assert mock_s3_client_object_exists.call_count == exist_count
+        assert mock_s3_client_mkdir.call_count == mkdir_count

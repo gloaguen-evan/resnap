@@ -1,6 +1,8 @@
 import io
+import json
 from typing import Union
 
+import pandas as pd
 from botocore.exceptions import ClientError
 
 from .config import S3Config
@@ -72,3 +74,60 @@ class S3Client:
             if e.response["Error"]["Code"] == "404":
                 return False
             raise
+
+    def mkdir(self, path: str) -> None:
+        """Create a directory in S3. In S3, directories are represented by keys that end with a '/'.
+
+        Args:
+            path (str): The path to create.
+        """
+        if not path.endswith(SEPARATOR):
+            path += SEPARATOR
+        self.upload_file(io.BytesIO(), path)
+
+    def get_df_from_file(self, file_path: str, file_format: str) -> Union[pd.DataFrame, None]:
+        """Read a file from S3 and return it as a DataFrame.
+
+        Args:
+            file_path (str): The S3 path to the file.
+            file_format (str): The format of the file (e.g., "csv", "parquet").
+
+        Returns:
+            pd.DataFrame: The DataFrame containing the data from the file.
+        """
+        if file_format == "csv":
+            return pd.read_csv(file_path)
+        elif file_format == "parquet":
+            return pd.read_parquet(file_path)
+        else:
+            raise ValueError(f"Unsupported file format: {file_format}")
+
+    def push_df_to_file(self, df: pd.DataFrame, file_path: str, file_format: str) -> None:
+        """Save a DataFrame to a file in S3.
+
+        Args:
+            df (pd.DataFrame): The DataFrame to save.
+            file_path (str): The S3 path where the file will be saved.
+            file_format (str): The format of the file (e.g., "csv", "parquet").
+        """
+        if file_format == "csv":
+            df.to_csv(file_path, index=False)
+        elif file_format == "parquet":
+            df.to_parquet(file_path, index=False)
+        else:
+            raise ValueError(f"Unsupported file format: {file_format}")
+
+    def push_to_file(self, data: Union[dict, str], file_path: str, file_format: str) -> None:
+        """Save data to a file in S3.
+
+        Args:
+            data (Union[dict, str]): The data to save.
+            file_path (str): The S3 path where the file will be saved.
+            file_format (str): The format of the file (e.g., "json", "text").
+        """
+        if file_format == "json":
+            self.upload_file(io.BytesIO(json.dumps(data).encode()), file_path)
+        elif file_format == "text":
+            self.upload_file(io.BytesIO(data.encode()), file_path)
+        else:
+            raise ValueError(f"Unsupported file format: {file_format}")
