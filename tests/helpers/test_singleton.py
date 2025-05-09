@@ -11,19 +11,19 @@ class SingletonABCMetaClass(metaclass=SingletonABCMeta):
     pass
 
 
-def test_single_instance():
+def test_single_instance() -> None:
     instance1 = SingletonMetaClass()
     instance2 = SingletonMetaClass()
     assert instance1 is instance2, "SingletonMeta did not return the same instance"
 
 
-def test_single_instance_abc():
+def test_single_instance_abc() -> None:
     instance1 = SingletonABCMetaClass()
     instance2 = SingletonABCMetaClass()
     assert instance1 is instance2, "SingletonMeta did not return the same instance"
 
 
-def test_thread_safety():
+def test_thread_safety() -> None:
     instances = []
 
     def create_instance():

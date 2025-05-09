@@ -7,7 +7,7 @@ from resnap.helpers.config import Config, Services
 
 
 class TestServices:
-    def test_services(self):
+    def test_services(self) -> None:
         assert Services.LOCAL == "local"
 
 

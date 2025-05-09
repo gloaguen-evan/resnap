@@ -17,7 +17,7 @@ class get_s3_connection:
         config (S3Config): S3 configuration object.
     """
 
-    def __init__(self, config: S3Config):
+    def __init__(self, config: S3Config) -> None:
         self._config = config
         self._connection: Optional[BaseClient] = None
 
@@ -60,7 +60,7 @@ class get_s3_connection:
     def _build_connection(self) -> BaseClient:
         if self._connection:
             return self._connection
-        open()
+        self.open()
         return self._connection
 
     def __enter__(self) -> BaseClient:
