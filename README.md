@@ -40,9 +40,9 @@ pip install resnap[boto]
 ## 🧪 Quick Example
 
 ```python
-from resnap import snap
+from resnap import resnap
 
-@snap()
+@resnap
 def expensive_computation(x, y):
     print("Running the actual computation...")
     return x * y + 42

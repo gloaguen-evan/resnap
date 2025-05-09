@@ -47,7 +47,7 @@ class S3Client:
         with get_s3_connection(self.config) as connection:
             if isinstance(local_path_or_fileobj, str):
                 with open(local_path_or_fileobj, "wb") as file:
-                    connection.download_file(self.bucket_name, remote_path, file)
+                    connection.download_fileobj(self.bucket_name, remote_path, file)
             else:
                 if isinstance(local_path_or_fileobj, io.BytesIO):
                     local_path_or_fileobj.seek(0)  # re-init the buffer read position
