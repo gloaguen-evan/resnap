@@ -2,7 +2,12 @@ import functools
 import logging
 from collections.abc import Callable, Coroutine
 from datetime import datetime
-from typing import Any, Optional, ParamSpec, TypeVar
+from typing import Any, Optional, TypeVar
+
+try:  # pragma: no cover
+    from typing import ParamSpec
+except ImportError:  # pragma: no cover
+    from typing_extensions import ParamSpec
 
 from .exceptions import ResnapError
 from .factory import ResnapServiceFactory
