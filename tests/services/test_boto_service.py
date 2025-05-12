@@ -38,8 +38,8 @@ def mock_s3_client_download_file(mocker) -> MagicMock:
 
 
 @pytest.fixture
-def mock_s3_client_push_to_file(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.boto_service.S3Client.push_to_file")
+def mock_s3_client_upload_file(mocker) -> MagicMock:
+    mock: MagicMock = mocker.patch("resnap.services.boto_service.S3Client.upload_file")
     return mock
 
 
@@ -237,7 +237,7 @@ class TestBotoService:
         # Then
         assert len(result) == 0
 
-    def test_should_write_metadata(self, mock_s3_client_push_to_file: MagicMock) -> None:
+    def test_should_write_metadata(self, mock_s3_client_upload_file: MagicMock) -> None:
         # Given
         service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
         metadata = MetadataSuccess(
@@ -247,7 +247,7 @@ class TestBotoService:
             result_type="str",
             hashed_arguments=hash_arguments({"test": "toto"}),
         )
-        mock_s3_client_push_to_file.side_effect = lambda buffer, path: buffer.write(
+        mock_s3_client_upload_file.side_effect = lambda buffer, path: buffer.write(
             json.dumps(metadata.to_dict()).encode()
         )
 
@@ -255,8 +255,8 @@ class TestBotoService:
         service._write_metadata("test_2021-01-01T00:00:00.resnap", metadata)
 
         # Then
-        mock_s3_client_push_to_file.assert_called_once()
-        args, _ = mock_s3_client_push_to_file.call_args
+        mock_s3_client_upload_file.assert_called_once()
+        args, _ = mock_s3_client_upload_file.call_args
         assert args[1] == "test_2021-01-01T00:00:00.resnap"
 
     def test_should_save_dataframe_to_parquet(self, mock_s3_client_push_df_to_file: MagicMock) -> None:
@@ -285,7 +285,7 @@ class TestBotoService:
         # Then
         mock_s3_client_push_df_to_file.assert_called_once_with(result, "test.csv", file_format="csv")
 
-    def test_should_save_to_pickle(self, mock_s3_client_push_to_file: MagicMock) -> None:
+    def test_should_save_to_pickle(self, mock_s3_client_upload_file: MagicMock) -> None:
         # Given
         service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
         result = {"key": "value"}
@@ -295,11 +295,11 @@ class TestBotoService:
         service._save_to_pickle(result, result_path)
 
         # Then
-        mock_s3_client_push_to_file.assert_called_once()
-        args, _ = mock_s3_client_push_to_file.call_args
+        mock_s3_client_upload_file.assert_called_once()
+        args, _ = mock_s3_client_upload_file.call_args
         assert args[1] == "test.pkl"
 
-    def test_should_save_to_text(self, mock_s3_client_push_to_file: MagicMock) -> None:
+    def test_should_save_to_text(self, mock_s3_client_upload_file: MagicMock) -> None:
         # Given
         service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
         result = "toto"
@@ -309,11 +309,11 @@ class TestBotoService:
         service._save_to_text(result, result_path)
 
         # Then
-        mock_s3_client_push_to_file.assert_called_once()
-        args, _ = mock_s3_client_push_to_file.call_args
+        mock_s3_client_upload_file.assert_called_once()
+        args, _ = mock_s3_client_upload_file.call_args
         assert args[1] == "test.txt"
 
-    def test_should_save_to_json(self, mock_s3_client_push_to_file: MagicMock) -> None:
+    def test_should_save_to_json(self, mock_s3_client_upload_file: MagicMock) -> None:
         # Given
         service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
         result = {"key": "value"}
@@ -323,8 +323,8 @@ class TestBotoService:
         service._save_to_json(result, result_path)
 
         # Then
-        mock_s3_client_push_to_file.assert_called_once()
-        args, _ = mock_s3_client_push_to_file.call_args
+        mock_s3_client_upload_file.assert_called_once()
+        args, _ = mock_s3_client_upload_file.call_args
         assert args[1] == "test.json"
 
     def test_should_read_parquet_to_dataframe(self, mock_s3_client_get_df_from_file: MagicMock) -> None:

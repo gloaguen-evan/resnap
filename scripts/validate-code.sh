@@ -26,4 +26,4 @@ echo ""
 echo "##############################################"
 echo "### Running tests and coverage with Pytest ###"
 echo "##############################################"
-pytest --cov=resnap --cov-fail-under=100 --cov-report=html
+pytest --cov=resnap --cov-report=html --cov-fail-under=100

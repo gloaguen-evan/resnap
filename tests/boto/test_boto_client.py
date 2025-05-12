@@ -1,8 +1,12 @@
 import io
-from typing import Union
-import pytest
+from typing import Optional, Union
 from unittest.mock import MagicMock, patch
-from resnap.boto.client import S3Client, format_remote_path
+
+import pandas as pd
+import pytest
+from botocore.exceptions import ClientError
+
+from resnap.boto.client import S3Client
 from resnap.boto.config import S3Config
 
 
@@ -20,7 +24,6 @@ def mock_s3_config() -> S3Config:
 @pytest.fixture
 def mock_connection(mocker) -> MagicMock:
     mock = mocker.patch("resnap.boto.client.get_s3_connection")
-    mock.return_value.__enter__.return_value = MagicMock()
     return mock
 
 
@@ -33,6 +36,12 @@ def mock_open(mocker) -> MagicMock:
 @pytest.fixture
 def mock_s3_client(mock_s3_config: S3Config) -> S3Client:
     return S3Client(config=mock_s3_config)
+
+
+@pytest.fixture
+def mock_dataframe_handler(mocker) -> MagicMock:
+    mock = mocker.patch("resnap.boto.client.get_dataframe_handler")
+    return mock
 
 
 class TestS3Client:
@@ -53,7 +62,7 @@ class TestS3Client:
             ),
         ],
     )
-    def test_upload_file(
+    def test_should_upload_file(
         self,
         local_path_or_fileobj: Union[str, io.FileIO, io.BytesIO],
         mock_s3_client: S3Client,
@@ -94,7 +103,7 @@ class TestS3Client:
             ),
         ],
     )
-    def test_download_file(
+    def test_should__download_file(
         self,
         local_path_or_fileobj: Union[str, io.FileIO, io.BytesIO],
         mock_connection: MagicMock,
@@ -118,81 +127,195 @@ class TestS3Client:
             expected_fileobj,
         )
 
-    # def test_list_objects(mock_s3_client):
-    #     mock_s3_client.s3.list_objects_v2.return_value = {
-    #         "Contents": [{"Key": "file1.txt"}, {"Key": "file2.txt"}]
-    #     }
-    #     result = mock_s3_client.list_objects(prefix="test/")
-    #     assert result == ["file1.txt", "file2.txt"]
+    @pytest.mark.parametrize("recursive", [True, False])
+    @patch("resnap.boto.client.sort_folders_and_files")
+    def test_should_list_objects(
+        self,
+        mock_sort_folders_and_files: MagicMock,
+        recursive: bool,
+        mock_s3_client: S3Client,
+        mock_connection: MagicMock,
+    ) -> None:
+        # Given
+        mock_connection.return_value.__enter__.return_value.get_paginator.return_value.paginate.return_value = [
+            {"Contents": [{"Key": "file1.txt"}, {"Key": "file2.txt"}]}
+        ]
+        mock_sort_folders_and_files.return_value = ["file1.txt", "file2.txt"]
+        expected_paginate_call = {
+            "Bucket": mock_s3_client.config.bucket_name,
+            "Prefix": "test/",
+        }
+        if not recursive:
+            expected_paginate_call["Delimiter"] = "/"
 
-    # def test_delete_object(mock_s3_client):
-    #     mock_s3_client.delete_object("file1.txt")
-    #     mock_s3_client.s3.delete_object.assert_called_once_with(
-    #         Bucket="test-bucket", Key="file1.txt"
-    #     )
+        # When
+        result = mock_s3_client.list_objects(remote_dir_path="test/", recursive=recursive)
 
-    # def test_delete_objects(mock_s3_client):
-    #     mock_s3_client.delete_objects(["file1.txt", "file2.txt"])
-    #     mock_s3_client.s3.delete_objects.assert_called_once_with(
-    #         Bucket="test-bucket",
-    #         Delete={"Objects": [{"Key": "file1.txt"}, {"Key": "file2.txt"}]},
-    #     )
+        # Then
+        assert result == ["file1.txt", "file2.txt"]
+        mock_connection.return_value.__enter__.return_value.get_paginator.assert_called_once_with(
+            "list_objects_v2"
+        )
+        mock_connection.return_value.__enter__.return_value.get_paginator.return_value.paginate.assert_called_once_with(
+            **expected_paginate_call,
+        )
+        mock_sort_folders_and_files.assert_called_once_with("test/*", [
+            {"Contents": [{"Key": "file1.txt"}, {"Key": "file2.txt"}]}
+        ])
 
-    # def test_object_exists(mock_s3_client):
-    #     mock_s3_client.s3.head_object.return_value = {}
-    #     assert mock_s3_client.object_exists("file1.txt") is True
+    def test_delete_object(self, mock_s3_client: S3Client, mock_connection: MagicMock) -> None:
+        # When
+        mock_s3_client.delete_object("file1.txt")
 
-    #     mock_s3_client.s3.head_object.side_effect = ClientError(
-    #         {"Error": {"Code": "404"}}, "HeadObject"
-    #     )
-    #     assert mock_s3_client.object_exists("file1.txt") is False
+        # Then
+        mock_connection.return_value.__enter__.return_value.delete_object.assert_called_once_with(
+            Bucket="test_bucket", Key="file1.txt"
+        )
 
-    # @patch("resnap.boto.client.get_s3_connection")
-    # def test_mkdir(mock_get_s3_connection, mock_s3_client):
-    #     mock_connection = MagicMock()
-    #     mock_get_s3_connection.return_value.__enter__.return_value = mock_connection
+    @pytest.mark.parametrize(
+        "keys",
+        [
+            pytest.param(["file1.txt", "file2.txt"], id="multiple_keys"),
+            pytest.param(["file1.txt"], id="single_key"),
+        ],
+    )
+    def test_should_delete_objects(self, keys: list[str], mock_s3_client: S3Client, mock_connection: MagicMock) -> None:
+        # Given
+        expected_delete_call = {"Objects": [{"Key": key} for key in keys]}
 
-    #     mock_s3_client.mkdir("test/dir")
-    #     mock_connection.upload_fileobj.assert_called_once()
+        # When
+        mock_s3_client.delete_objects(keys)
 
-    # @patch("resnap.boto.client.pd.read_csv")
-    # def test_get_df_from_file_csv(mock_read_csv, mock_s3_client):
-    #     mock_read_csv.return_value = "mock_dataframe"
-    #     result = mock_s3_client.get_df_from_file("test.csv", "csv")
-    #     assert result == "mock_dataframe"
-    #     mock_read_csv.assert_called_once_with("test.csv")
+        # Then
+        mock_connection.return_value.__enter__.return_value.delete_objects.assert_called_once_with(
+            Bucket="test_bucket",
+            Delete=expected_delete_call,
+        )
 
-    # @patch("resnap.boto.client.pd.read_parquet")
-    # def test_get_df_from_file_parquet(mock_read_parquet, mock_s3_client):
-    #     mock_read_parquet.return_value = "mock_dataframe"
-    #     result = mock_s3_client.get_df_from_file("test.parquet", "parquet")
-    #     assert result == "mock_dataframe"
-    #     mock_read_parquet.assert_called_once_with("test.parquet")
+    def test_should_delete_objects_empty(self, mock_s3_client: S3Client, mock_connection: MagicMock) -> None:
+        # When
+        mock_s3_client.delete_objects([])
 
-    # @patch("resnap.boto.client.pd.DataFrame.to_csv")
-    # def test_push_df_to_file_csv(mock_to_csv, mock_s3_client):
-    #     df = MagicMock()
-    #     mock_s3_client.push_df_to_file(df, "test.csv", "csv")
-    #     mock_to_csv.assert_called_once_with("test.csv", index=False)
+        # Then
+        mock_connection.return_value.__enter__.return_value.delete_objects.assert_not_called()
 
-    # @patch("resnap.boto.client.pd.DataFrame.to_parquet")
-    # def test_push_df_to_file_parquet(mock_to_parquet, mock_s3_client):
-    #     df = MagicMock()
-    #     mock_s3_client.push_df_to_file(df, "test.parquet", "parquet")
-    #     mock_to_parquet.assert_called_once_with("test.parquet", index=False)
+    @pytest.mark.parametrize(
+        "remote_path",
+        [
+            pytest.param("test.txt", id="object_exists"),
+            pytest.param("folder/", id="folder_exist"),
+            pytest.param("/", id="bucket_exist"),
+        ],
+    )
+    def test_should_return_true_if_object_exists(
+        self,
+        remote_path: str,
+        mock_s3_client: S3Client,
+        mock_connection: MagicMock,
+    ) -> None:
+        # When
+        result = mock_s3_client.object_exists(remote_path)
 
-    # def test_push_to_file_json(mock_s3_client):
-    #     data = {"key": "value"}
-    #     with patch.object(mock_s3_client, "upload_file") as mock_upload_file:
-    #         mock_s3_client.push_to_file(data, "test.json", "json")
-    #         mock_upload_file.assert_called_once()
+        # Then
+        assert result is True
+        if remote_path == "/":
+            mock_connection.return_value.__enter__.return_value.get_bucket_acl.assert_called_once_with(
+                Bucket="test_bucket"
+            )
+        elif remote_path.endswith("/"):
+            mock_connection.return_value.__enter__.return_value.get_object.assert_called_once_with(
+                Bucket="test_bucket", Key=remote_path
+            )
+        else:
+            mock_connection.return_value.__enter__.return_value.head_object.assert_called_once_with(
+                Bucket="test_bucket", Key=remote_path
+            )
 
-    # def test_push_to_file_text(mock_s3_client):
-    #     data = "test data"
-    #     with patch.object(mock_s3_client, "upload_file") as mock_upload_file:
-    #         mock_s3_client.push_to_file(data, "test.txt", "text")
-    #         mock_upload_file.assert_called_once()
+    def test_should_raise_if_object_not_exists(self, mock_s3_client: S3Client, mock_connection: MagicMock) -> None:
+        # Given
+        mock_connection.return_value.__enter__.return_value.head_object.side_effect = ClientError(
+            {"Error": {"Code": "404"}}, "HeadObject"
+        )
 
-    # def test_format_remote_path():
-    #     assert format_remote_path("/test/path") == "test/path"
-    #     assert format_remote_path("test/path") == "test/path"
+        # When
+        result = mock_s3_client.object_exists("file1.txt")
+
+        # Then
+        assert result is False
+
+    @pytest.mark.parametrize(
+        "path",
+        [
+            pytest.param("test/dir", id="dir_path"),
+            pytest.param("test/dir/", id="dir_path_with_slash"),
+        ],
+    )
+    def test_should_create_dir(self, path: str, mock_s3_client: S3Client, mock_connection: MagicMock) -> None:
+        # When
+        mock_s3_client.mkdir(path)
+
+        # Then
+        mock_connection.return_value.__enter__.return_value.upload_fileobj.assert_called_once()
+
+    def test_should_return_df_from_file(
+        self, mock_s3_client: S3Client, mock_connection: MagicMock, mock_dataframe_handler: MagicMock,
+    ) -> None:
+        # Given
+        mock_dataframe_handler.return_value.read_df.return_value = MagicMock()
+        mock_connection.return_value.__enter__.return_value.get_object.return_value = {
+            "Body": MagicMock(read=MagicMock(return_value=b"col1,col2\n1,2\n3,4"))
+        }
+
+        # When
+        with patch.object(S3Client, "object_exists", return_value=True):
+            result = mock_s3_client.get_df_from_file("test.csv", "csv", compression="gzip", nrows=10)
+
+        # Then
+        assert result == mock_dataframe_handler.return_value.read_df.return_value
+        mock_connection.return_value.__enter__.return_value.get_object.assert_called_once_with(
+            Bucket="test_bucket",
+            Key="test.csv"
+        )
+        mock_dataframe_handler.return_value.read_df.assert_called_once_with(
+            mock_connection.return_value.__enter__.return_value.get_object.return_value["Body"],
+            compression="gzip",
+            nrows=10,
+        )
+
+    def test_should_raise_if_file_not_exists(self, mock_s3_client: S3Client, mock_dataframe_handler: MagicMock) -> None:
+        # When / Then
+        with pytest.raises(FileNotFoundError, match="File test.csv not exists in bucket test_bucket"):
+            with patch.object(S3Client, "object_exists", return_value=False):
+                mock_s3_client.get_df_from_file("test.csv", "csv")
+
+    @pytest.mark.parametrize(
+        "compression, file_format, expected_compression",
+        [
+            pytest.param(None, "csv", None, id="no_compression"),
+            pytest.param("gzip", "csv", "gzip", id="gzip_compression"),
+            pytest.param(None, "parquet", "snappy", id="snappy_compression"),
+        ],
+    )
+    def test_should_push_df_to_file(
+        self,
+        compression: Optional[str],
+        file_format: str,
+        expected_compression: Optional[str],
+        mock_s3_client: S3Client,
+        mock_dataframe_handler: MagicMock,
+    ) -> None:
+        # Given
+        df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
+        expected_write_df_return = b"col1,col2\n1,2\n3,4"
+        mock_dataframe_handler.return_value.write_df.return_value = expected_write_df_return
+
+        # When / Then
+        with patch.object(S3Client, "upload_file") as mock_upload_file:
+            if compression:
+                mock_s3_client.push_df_to_file(df, "test.csv", compression=compression, file_format=file_format)
+            else:
+                mock_s3_client.push_df_to_file(df, "test.csv", file_format=file_format)
+            mock_dataframe_handler.return_value.write_df.assert_called_once_with(
+                df, compression=expected_compression
+            )
+            mock_upload_file.assert_called_once_with(expected_write_df_return, "test.csv")

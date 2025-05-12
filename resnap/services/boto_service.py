@@ -119,26 +119,22 @@ class BotoResnapService(ResnapService):
     def _save_dataframe_to_parquet(self, result: pd.DataFrame, result_path: str) -> None:
         self._client.push_df_to_file(result, result_path, compression="gzip", file_format="parquet")
 
-    def _save_buffer(self, buffer: io.BytesIO, result_path: str) -> None:
-        buffer.seek(0)
-        self._client.push_to_file(buffer, result_path)
-
     def _save_to_pickle(self, result: Any, result_path: str) -> None:
         with io.BytesIO() as buffer:
             pickle.dump(result, buffer)
-            self._save_buffer(buffer, result_path)
+            self._client.upload_file(buffer, result_path)
 
     def _save_to_text(self, result: Any, result_path: str) -> None:
         with io.BytesIO() as buffer:
             buffer.write(str(result).encode())
-            self._save_buffer(buffer, result_path)
+            self._client.upload_file(buffer, result_path)
 
     def _save_to_json(self, result: Any, result_path: str) -> None:
         with io.BytesIO() as buffer:
             buffer.write(json.dumps(result, indent=4).encode())
-            self._save_buffer(buffer, result_path)
+            self._client.upload_file(buffer, result_path)
 
     def _write_metadata(self, metadata_path: str, metadata: Metadata) -> None:
         with io.BytesIO() as buffer:
             buffer.write(json.dumps(metadata.to_dict(), indent=4).encode())
-            self._save_buffer(buffer, metadata_path)
+            self._client.upload_file(buffer, metadata_path)

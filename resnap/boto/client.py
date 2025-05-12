@@ -1,21 +1,23 @@
 import io
-import json
-from typing import Union
+from typing import Optional, Union
 
 import pandas as pd
-from botocore.exceptions import ClientError
 
 from .config import S3Config
 from .connection import get_s3_connection
+from .dataframes import get_dataframe_handler
+from .tools import SEPARATOR, format_remote_path_folder_to_search, remove_separator_at_begin, sort_folders_and_files
 
-SEPARATOR = "/"
-
-
-def format_remote_path(path: str) -> str:
-    return path.lstrip(SEPARATOR)
+_UNDEFINED_VALUE = object()
 
 
 class S3Client:
+    """S3Client is a class that provides methods to interact with Amazon S3 or Ceph.
+    It allows uploading, downloading, listing, and deleting files and directories in S3.
+    Attributes:
+        config (S3Config): Configuration object containing S3 connection details.
+        bucket_name (str): The name of the S3 bucket.
+    """
     def __init__(self, config: S3Config) -> None:
         self.config = config
         self.bucket_name = config.bucket_name
@@ -27,7 +29,7 @@ class S3Client:
             local_path_or_fileobj (Union[str, io.FileIO, io.BytesIO]): Local file path or file-like object to upload.
             remote_path (str): S3 path (key) where the file will be uploaded.
         """
-        remote_path = format_remote_path(remote_path)
+        remote_path = remove_separator_at_begin(remote_path)
         with get_s3_connection(self.config) as connection:
             if isinstance(local_path_or_fileobj, str):
                 with open(local_path_or_fileobj, "rb") as file:
@@ -43,7 +45,7 @@ class S3Client:
             local_path_or_fileobj (Union[str, io.FileIO, io.BytesIO]): Local file path or file-like object to download to.
             remote_path (str): S3 path (key) of the file to download.
         """
-        remote_path = format_remote_path(remote_path)
+        remote_path = remove_separator_at_begin(remote_path)
         with get_s3_connection(self.config) as connection:
             if isinstance(local_path_or_fileobj, str):
                 with open(local_path_or_fileobj, "wb") as file:
@@ -53,27 +55,56 @@ class S3Client:
                     local_path_or_fileobj.seek(0)  # re-init the buffer read position
                 connection.download_fileobj(self.bucket_name, remote_path, local_path_or_fileobj)
 
-    def list_objects(self, prefix: str = "", recursive: bool = False) -> list[str]:
-        response = self.s3.list_objects_v2(Bucket=self.bucket_name, Prefix=prefix)
-        contents = response.get("Contents", [])
-        return [obj["Key"] for obj in contents]
+    def list_objects(self, remote_dir_path: str = "", recursive: bool = False) -> list[str]:
+        """List objects in a directory in S3.
+        Args:
+            remote_dir_path (str): The S3 path to the directory.
+            recursive (bool): Whether to list objects recursively.
+        Returns:
+            List[str]: A list of object keys in the specified directory.
+        """
+        remote_dir_path = format_remote_path_folder_to_search(remote_dir_path)
+        prefix = remote_dir_path[: remote_dir_path.index("*")]
+        operation_parameters = {
+            "Bucket": self.bucket_name,
+            "Prefix": prefix,
+        }
+        if not recursive:
+            operation_parameters["Delimiter"] = SEPARATOR
 
-    def delete_object(self, key: str):
-        self.s3.delete_object(Bucket=self.bucket_name, Key=key)
+        with get_s3_connection(self.config) as connection:
+            paginator = connection.get_paginator("list_objects_v2")
+            page_iterator = paginator.paginate(**operation_parameters)
+            return sort_folders_and_files(remote_dir_path, page_iterator)
+
+    def delete_object(self, key: str) -> None:
+        """Delete an object from S3.
+        Args:
+            key (str): The S3 key of the object to delete.
+        """
+        with get_s3_connection(self.config) as connection:
+            connection.delete_object(Bucket=self.bucket_name, Key=key)
 
     def delete_objects(self, keys: list[str]):
         objects = [{"Key": key} for key in keys]
-        if objects:
-            self.s3.delete_objects(Bucket=self.bucket_name, Delete={"Objects": objects})
+        if not objects:
+            return
+        with get_s3_connection(self.config) as connection:
+            connection.delete_objects(Bucket=self.bucket_name, Delete={"Objects": objects})
 
-    def object_exists(self, key: str) -> bool:
-        try:
-            self.s3.head_object(Bucket=self.bucket_name, Key=key)
-            return True
-        except ClientError as e:
-            if e.response["Error"]["Code"] == "404":
+    def object_exists(self, remote_path: str) -> bool:
+        remote_path = remove_separator_at_begin(remote_path)
+        with get_s3_connection(self.config) as connection:
+            try:
+                if remote_path == SEPARATOR:
+                    connection.get_bucket_acl(Bucket=self.bucket_name)
+                elif remote_path.endswith(SEPARATOR):
+                    connection.get_object(Bucket=self.bucket_name, Key=remote_path)
+                else:
+                    connection.head_object(Bucket=self.bucket_name, Key=remote_path)
+                return True
+            except Exception:
                 return False
-            raise
 
     def mkdir(self, path: str) -> None:
         """Create a directory in S3. In S3, directories are represented by keys that end with a '/'.
@@ -85,49 +116,49 @@ class S3Client:
             path += SEPARATOR
         self.upload_file(io.BytesIO(), path)
 
-    def get_df_from_file(self, file_path: str, file_format: str) -> Union[pd.DataFrame, None]:
+    def get_df_from_file(self, remote_path: str, file_format: str = "csv", **kwargs) -> Union[pd.DataFrame, None]:
         """Read a file from S3 and return it as a DataFrame.
 
         Args:
-            file_path (str): The S3 path to the file.
+            remote_path (str): The S3 path to the file.
             file_format (str): The format of the file (e.g., "csv", "parquet").
 
         Returns:
             pd.DataFrame: The DataFrame containing the data from the file.
         """
-        if file_format == "csv":
-            return pd.read_csv(file_path)
-        elif file_format == "parquet":
-            return pd.read_parquet(file_path)
-        else:
-            raise ValueError(f"Unsupported file format: {file_format}")
+        df_handler = get_dataframe_handler(file_format)
+        df_handler.verify_compression_and_extension(kwargs.get("compression"), remote_path)
 
-    def push_df_to_file(self, df: pd.DataFrame, file_path: str, file_format: str) -> None:
+        remote_path = remove_separator_at_begin(remote_path)
+        if not self.object_exists(remote_path):
+            raise FileNotFoundError("File {} not exists in bucket {}".format(remote_path, self.bucket_name))
+
+        with get_s3_connection(self.config) as connection:
+            bytes_object = connection.get_object(Bucket=self.bucket_name, Key=remote_path)["Body"]
+            return df_handler.read_df(bytes_object, **kwargs)
+
+    def push_df_to_file(
+        self,
+        df: pd.DataFrame,
+        remote_path: str,
+        compression: Optional[str] = _UNDEFINED_VALUE,
+        file_format: str = "csv",
+        **kwargs,
+    ) -> None:
         """Save a DataFrame to a file in S3.
 
         Args:
             df (pd.DataFrame): The DataFrame to save.
-            file_path (str): The S3 path where the file will be saved.
+            remote_path (str): The S3 path where the file will be saved.
+            compression (Optional[str]): The compression method to use (e.g., "gzip").
             file_format (str): The format of the file (e.g., "csv", "parquet").
         """
-        if file_format == "csv":
-            df.to_csv(file_path, index=False)
-        elif file_format == "parquet":
-            df.to_parquet(file_path, index=False)
-        else:
-            raise ValueError(f"Unsupported file format: {file_format}")
+        if compression is _UNDEFINED_VALUE:
+            compression = "snappy" if file_format == "parquet" else None
 
-    def push_to_file(self, data: Union[dict, str], file_path: str, file_format: str) -> None:
-        """Save data to a file in S3.
+        df_handler = get_dataframe_handler(file_format)
+        df_handler.verify_compression_and_extension(compression, remote_path)
 
-        Args:
-            data (Union[dict, str]): The data to save.
-            file_path (str): The S3 path where the file will be saved.
-            file_format (str): The format of the file (e.g., "json", "text").
-        """
-        if file_format == "json":
-            self.upload_file(io.BytesIO(json.dumps(data).encode()), file_path)
-        elif file_format == "text":
-            self.upload_file(io.BytesIO(data.encode()), file_path)
-        else:
-            raise ValueError(f"Unsupported file format: {file_format}")
+        remote_path = remove_separator_at_begin(remote_path)
+        bytes_object = df_handler.write_df(df, compression=compression, **kwargs)
+        self.upload_file(bytes_object, remote_path)
