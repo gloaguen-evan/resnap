@@ -4,7 +4,7 @@ import pickle
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 from .constants import EXT
 
@@ -45,12 +45,12 @@ def calculate_datetime_from_now(value: int, unit: TimeUnit) -> datetime:
     return now - delta
 
 
-def get_datetime_from_filename(filename: Union[Path, str]) -> datetime:
+def get_datetime_from_filename(filename: Path | str) -> datetime:
     """
     Get datetime from the given filename.
 
     Args:
-        filename (Union[Path, str]): The filename to get the datetime from.
+        filename (Path | str): The filename to get the datetime from.
     Returns:
         datetime: The datetime from the given filename.
     """

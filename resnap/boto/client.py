@@ -1,5 +1,4 @@
 import io
-from typing import Optional, Union
 
 import pandas as pd
 
@@ -22,11 +21,11 @@ class S3Client:
         self.config = config
         self.bucket_name = config.bucket_name
 
-    def upload_file(self, local_path_or_fileobj: Union[str, io.FileIO, io.BytesIO], remote_path: str) -> None:
+    def upload_file(self, local_path_or_fileobj: str | io.FileIO | io.BytesIO, remote_path: str) -> None:
         """Upload a file to S3.
 
         Args:
-            local_path_or_fileobj (Union[str, io.FileIO, io.BytesIO]): Local file path or file-like object to upload.
+            local_path_or_fileobj (str | io.FileIO | io.BytesIO): Local file path or file-like object to upload.
             remote_path (str): S3 path (key) where the file will be uploaded.
         """
         remote_path = remove_separator_at_begin(remote_path)
@@ -39,10 +38,10 @@ class S3Client:
                     local_path_or_fileobj.seek(0)  # re-init the buffer read position
                 connection.upload_fileobj(local_path_or_fileobj, self.bucket_name, remote_path)
 
-    def download_file(self, local_path_or_fileobj: Union[str, io.FileIO, io.BytesIO], remote_path: str) -> None:
+    def download_file(self, local_path_or_fileobj: str | io.FileIO | io.BytesIO, remote_path: str) -> None:
         """Download a file from S3.
         Args:
-            local_path_or_fileobj (Union[str, io.FileIO, io.BytesIO]): Local file path or file-like object to download to.
+            local_path_or_fileobj (str | io.FileIO | io.BytesIO): Local file path or file-like object to download to.
             remote_path (str): S3 path (key) of the file to download.
         """
         remote_path = remove_separator_at_begin(remote_path)
@@ -116,7 +115,7 @@ class S3Client:
             path += SEPARATOR
         self.upload_file(io.BytesIO(), path)
 
-    def get_df_from_file(self, remote_path: str, file_format: str = "csv", **kwargs) -> Union[pd.DataFrame, None]:
+    def get_df_from_file(self, remote_path: str, file_format: str = "csv", **kwargs) -> pd.DataFrame | None:
         """Read a file from S3 and return it as a DataFrame.
 
         Args:
@@ -141,7 +140,7 @@ class S3Client:
         self,
         df: pd.DataFrame,
         remote_path: str,
-        compression: Optional[str] = _UNDEFINED_VALUE,
+        compression: str | None = _UNDEFINED_VALUE,
         file_format: str = "csv",
         **kwargs,
     ) -> None:
@@ -150,7 +149,7 @@ class S3Client:
         Args:
             df (pd.DataFrame): The DataFrame to save.
             remote_path (str): The S3 path where the file will be saved.
-            compression (Optional[str]): The compression method to use (e.g., "gzip").
+            compression (str | None): The compression method to use (e.g., "gzip").
             file_format (str): The format of the file (e.g., "csv", "parquet").
         """
         if compression is _UNDEFINED_VALUE:

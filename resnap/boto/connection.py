@@ -1,5 +1,3 @@
-from typing import Optional
-
 import boto3
 from botocore.client import BaseClient, Config
 
@@ -19,7 +17,7 @@ class get_s3_connection:
 
     def __init__(self, config: S3Config) -> None:
         self._config = config
-        self._connection: Optional[BaseClient] = None
+        self._connection: BaseClient | None = None
 
     def open(self) -> None:
         """Open S3 connection."""

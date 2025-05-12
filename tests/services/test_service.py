@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from unittest.mock import MagicMock, call
 
 import freezegun
@@ -262,7 +262,7 @@ class TestServicce:
     def test_should_save_result(
         self,
         func_result: Any,
-        output_format: Optional[str],
+        output_format: str | None,
         output_folder: str,
         expected_mock: str,
         expected_result_ext: str,

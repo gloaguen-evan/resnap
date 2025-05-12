@@ -1,7 +1,8 @@
+from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Union
+from typing import Any
 
 from typing_extensions import Self
 
@@ -15,7 +16,7 @@ class Metadata(ABC):
     hashed_arguments: str
 
     @classmethod
-    def from_dict(cls, data: dict) -> Union["MetadataSuccess", "MetadataFail"]:
+    def from_dict(cls, data: dict) -> MetadataSuccess | MetadataFail:
         if data["status"] == Status.SUCCESS.value:
             return MetadataSuccess.from_dict(data)
         return MetadataFail.from_dict(data)

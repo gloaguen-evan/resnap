@@ -2,7 +2,6 @@ import io
 import zlib
 from abc import ABC, abstractmethod
 from os import path
-from typing import Optional, Union
 
 import pandas as pd
 
@@ -11,7 +10,7 @@ try:
 except ImportError:  # pragma: no cover
     pa = None
 
-BufferType = Union[io.FileIO, io.BytesIO, io.StringIO]
+BufferType = io.FileIO | io.BytesIO | io.StringIO
 _SUPPORTED_COMPRESSIONS = ["gzip"]
 AVAILABLE_COMPRESSIONS = {"gzip": [".gz"], "snappy": ["*"]}
 
@@ -28,7 +27,7 @@ class DataFrameHandler(ABC):
         pass
 
     @staticmethod
-    def verify_compression_and_extension(compression: Optional[str], filepath: str) -> None:
+    def verify_compression_and_extension(compression: str | None, filepath: str) -> None:
         """check compression mode.
 
         :param compression: compression mode
@@ -58,7 +57,7 @@ class CSVHandler(DataFrameHandler):
     def read_df(
         bytes_object: BufferType,
         compression: str = "infer",
-        nrows: Optional[int] = None,
+        nrows: int | None = None,
         **kwargs,
     ) -> pd.DataFrame:
         if nrows is not None and compression == "gzip":  # top N from gzip file
@@ -68,7 +67,7 @@ class CSVHandler(DataFrameHandler):
         return CSVHandler._read_df(bytes_object, compression, **kwargs)  # default behaviour
 
     @staticmethod
-    def write_df(df: pd.DataFrame, compression: Optional[str] = None, **kwargs) -> BufferType:
+    def write_df(df: pd.DataFrame, compression: str | None = None, **kwargs) -> BufferType:
         if not compression:
             buffer = io.StringIO()
             df.to_csv(buffer, **kwargs)
@@ -84,12 +83,12 @@ class CSVHandler(DataFrameHandler):
             raise ValueError(f"{compression} compression not supported, supported one are: {_SUPPORTED_COMPRESSIONS}")
 
     @staticmethod
-    def _read_df(bytes_object: BufferType, compression: Optional[str] = None, **kwargs) -> pd.DataFrame:
+    def _read_df(bytes_object: BufferType, compression: str | None = None, **kwargs) -> pd.DataFrame:
         buffer = io.BytesIO(bytes_object.read())
         return pd.read_csv(buffer, compression=compression, **kwargs)
 
     @staticmethod
-    def _read_df_nrows(bytes_object: BufferType, nrows: int, compression: Optional[str] = None, **kwargs) -> pd.DataFrame:
+    def _read_df_nrows(bytes_object: BufferType, nrows: int, compression: str | None = None, **kwargs) -> pd.DataFrame:
         content = []
         for idx, line in enumerate(bytes_object.iter_lines()):
             if idx > nrows:
@@ -124,7 +123,7 @@ class ParquetHandler(DataFrameHandler):
         return pd.read_parquet(reader, engine="pyarrow", **kwargs)
 
     @staticmethod
-    def write_df(df: pd.DataFrame, compression: Optional[str] = None, **kwargs) -> BufferType:
+    def write_df(df: pd.DataFrame, compression: str | None = None, **kwargs) -> BufferType:
         kwargs.pop("engine", None)
         if not pa:
             raise ImportError("You need to install pyarrow to write parquet: `pip install pyarrow`")

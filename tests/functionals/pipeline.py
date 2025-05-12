@@ -1,6 +1,5 @@
 import asyncio
 from datetime import datetime
-from typing import Optional
 
 import pandas as pd
 from dependency_injector.wiring import Provide, inject
@@ -41,7 +40,7 @@ class Pipeline:
 
     async def run(
         self,
-        first_method_argument: Optional[pd.DataFrame] = None,
+        first_method_argument: pd.DataFrame | None = None,
         second_method_argument: str = "titi",
         third_method_argument: str = "titi",
         basic_class_get_param_value_argument: str = "titi",
@@ -57,7 +56,7 @@ class Pipeline:
 
     @resnap(output_format="csv", output_folder=f"toto_{exec_time}")
     @inject
-    def _first_method(self, df: Optional[pd.DataFrame] = None, test=Provide["test"]) -> pd.DataFrame:
+    def _first_method(self, df: pd.DataFrame | None = None, test=Provide["test"]) -> pd.DataFrame:
         if df is not None:
             return df
         return pd.DataFrame(

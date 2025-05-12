@@ -2,7 +2,7 @@ import functools
 import logging
 from collections.abc import Callable, Coroutine
 from datetime import datetime
-from typing import Any, Optional, ParamSpec, TypeVar
+from typing import Any, ParamSpec, TypeVar
 
 from .exceptions import ResnapError
 from .factory import ResnapServiceFactory
@@ -18,7 +18,7 @@ def _save(
     output_folder: str,
     hashed_arguments: str,
     result: Any,
-    output_format: Optional[str] = None,
+    output_format: str | None = None,
 ) -> None:
     logger.debug("Saving result...")
     result_path, event_time = service.save_result(func_name, result, output_folder, output_format)
@@ -41,7 +41,7 @@ R = TypeVar("R")  # Return type
 P = ParamSpec("P")  # Parameter specification
 
 
-def resnap(_func: Optional[Callable[P, R]] = None, **options: Any) -> Callable[P, R]:
+def resnap(_func: Callable[P, R] | None = None, **options: Any) -> Callable[P, R]:
     """
     Decorator to save the result of a function and return it if the function has been called with the same arguments
     before and the result was saved successfully.
@@ -104,7 +104,7 @@ def resnap(_func: Optional[Callable[P, R]] = None, **options: Any) -> Callable[P
 
 
 def async_resnap(
-    _func: Optional[Callable[P, Coroutine[Any, Any, R]]] = None,
+    _func: Callable[P, Coroutine[Any, Any, R]] | None = None,
     **options: Any,
 ) -> Callable[P, Coroutine[Any, Any, R]]:
     """

@@ -1,5 +1,4 @@
 import io
-from typing import Optional, Union
 from unittest.mock import MagicMock, patch
 
 import pandas as pd
@@ -64,7 +63,7 @@ class TestS3Client:
     )
     def test_should_upload_file(
         self,
-        local_path_or_fileobj: Union[str, io.FileIO, io.BytesIO],
+        local_path_or_fileobj: str | io.FileIO | io.BytesIO,
         mock_s3_client: S3Client,
         mock_connection: MagicMock,
         mock_open: MagicMock,
@@ -105,7 +104,7 @@ class TestS3Client:
     )
     def test_should__download_file(
         self,
-        local_path_or_fileobj: Union[str, io.FileIO, io.BytesIO],
+        local_path_or_fileobj: str | io.FileIO | io.BytesIO,
         mock_connection: MagicMock,
         mock_s3_client: S3Client,
         mock_open: MagicMock,
@@ -298,9 +297,9 @@ class TestS3Client:
     )
     def test_should_push_df_to_file(
         self,
-        compression: Optional[str],
+        compression: str | None,
         file_format: str,
-        expected_compression: Optional[str],
+        expected_compression: str | None,
         mock_s3_client: S3Client,
         mock_dataframe_handler: MagicMock,
     ) -> None:

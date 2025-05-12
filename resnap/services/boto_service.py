@@ -2,7 +2,7 @@ import io
 import json
 import pickle
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -16,7 +16,7 @@ from .service import ResnapService
 
 
 class BotoResnapService(ResnapService):
-    def __init__(self, config: Config, secrets: Optional[dict] = None) -> None:
+    def __init__(self, config: Config, secrets: dict | None = None) -> None:
         super().__init__(config)
         self._client: S3Client = S3Client(S3Config(**secrets))
 

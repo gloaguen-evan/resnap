@@ -1,12 +1,10 @@
-from typing import Optional
-
 from .helpers.config import Config, Services
 from .services.local_service import LocalResnapService
 from .services.service import ResnapService
 from .settings import get_config_data
 
 _resnap_config: Config = get_config_data()
-_service: Optional[ResnapService] = None
+_service: ResnapService | None = None
 
 
 def set_resnap_service(service: ResnapService) -> None:

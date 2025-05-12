@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 import pandas as pd
 import pytest
@@ -34,7 +34,7 @@ def test_calculate_datetime_from_now(value: int, unit: TimeUnit, expected: datet
         (Path("toto/toto_2021-01-01T00:00:00.resnap"), datetime.fromisoformat("2021-01-01T00:00:00")),
     ],
 )
-def test_should_extract_datetime_from_filename(filename: Union[Path, str], expected: datetime) -> None:
+def test_should_extract_datetime_from_filename(filename: Path | str, expected: datetime) -> None:
     # When
     result = get_datetime_from_filename(filename)
 

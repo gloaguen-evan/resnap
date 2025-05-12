@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import pandas as pd
 
@@ -262,7 +262,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
         func_name: str,
         result: Any,
         output_folder: str,
-        output_format: Optional[str] = None,
+        output_format: str | None = None,
     ) -> tuple[str, datetime]:
         """
         Save the result based on the function name and result.
@@ -271,7 +271,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
             func_name (str): The function name.
             result (Any): The result to save.
             output_folder (str): The output folder.
-            output_format (Optional[str]): The output format.
+            output_format (str | None): The output format.
         Returns:
             tuple[str, datetime]: The result path and event time.
         """

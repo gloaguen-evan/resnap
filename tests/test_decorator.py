@@ -1,7 +1,6 @@
 import asyncio
 import re
 from datetime import datetime
-from typing import Optional
 from unittest.mock import MagicMock
 
 import freezegun
@@ -120,7 +119,7 @@ def test_should_return_result_if_metadata_exists_sync(mock_service: MagicMock) -
         MetadataSuccessBuilder.a_metadata().with_arguments({"magic_number": 10}).build(),
     ],
 )
-def test_should_return_result_sync(metadata: Optional[Metadata], mock_service: MagicMock) -> None:
+def test_should_return_result_sync(metadata: Metadata | None, mock_service: MagicMock) -> None:
     # Given
     mock_service.return_value.is_enabled = True
     mock_service.return_value.get_success_metadatas.return_value = [metadata] if metadata else []
@@ -290,7 +289,7 @@ async def test_should_return_result_if_metadata_exists_async(mock_service: Magic
         MetadataSuccessBuilder.a_metadata().with_arguments({"magic_number": 10}).build(),
     ],
 )
-async def test_should_return_result_async(metadata: Optional[Metadata], mock_service: MagicMock) -> None:
+async def test_should_return_result_async(metadata: Metadata | None, mock_service: MagicMock) -> None:
     # Given
     mock_service.return_value.is_enabled = True
     mock_service.return_value.get_success_metadatas.return_value = [metadata] if metadata else []
