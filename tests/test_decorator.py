@@ -8,6 +8,7 @@ import pytest
 
 from resnap.decorators import async_resnap, resnap
 from resnap.exceptions import ResnapError
+from resnap.helpers.context import add_metadata
 from resnap.helpers.metadata import Metadata
 from resnap.helpers.utils import hash_arguments
 from tests.builders.metadata_builder import MetadataFailBuilder, MetadataSuccessBuilder
@@ -15,7 +16,7 @@ from tests.builders.metadata_builder import MetadataFailBuilder, MetadataSuccess
 
 @pytest.fixture(autouse=True)
 def mock_service(mocker) -> None:
-    mock: MagicMock = mocker.patch('resnap.decorators.ResnapServiceFactory.get_service', return_value=MagicMock())
+    mock: MagicMock = mocker.patch("resnap.decorators.ResnapServiceFactory.get_service", return_value=MagicMock())
     return mock
 
 
@@ -70,6 +71,19 @@ def func_str(magic_number: int = 40) -> int:
     return magic_number + 2
 
 
+@resnap
+def func_str_with_custom_metadata(magic_number: int = 40) -> int:
+    add_metadata("key", "value")
+    return magic_number + 2
+
+
+@async_resnap
+async def async_func_str_with_custom_metadata(magic_number: int = 40) -> int:
+    add_metadata("key", "value")
+    await asyncio.sleep(0.1)
+    return magic_number + 2
+
+
 @async_resnap(output_format="str")
 async def async_func_str(magic_number: int = 40) -> int:
     await asyncio.sleep(0.1)
@@ -96,7 +110,8 @@ def test_should_return_result_if_metadata_exists_sync(mock_service: MagicMock) -
         (
             MetadataSuccessBuilder.a_metadata()
             .with_event_time(datetime.fromisoformat("2021-01-02T00:00:00"))
-            .with_arguments({"magic_number": 5}).build()
+            .with_arguments({"magic_number": 5})
+            .build()
         ),
     ]
     mock_service.return_value.read_result.return_value = 42
@@ -142,6 +157,7 @@ def test_should_return_result_sync(metadata: Metadata | None, mock_service: Magi
         event_time=now_time,
         result_path="/path/to/result",
         result_type=int.__name__,
+        extra_metadata={},
     )
 
 
@@ -158,6 +174,30 @@ def test_should_use_output_format_option_sync(mock_service: MagicMock) -> None:
     # Then
     assert result == 42
     mock_service.return_value.save_result.assert_called_with("func_str", 42, "", "str")
+
+
+def test_should_add_custom_metadata(mock_service: MagicMock) -> None:
+    # Given
+    mock_service.return_value.is_enabled = True
+    mock_service.return_value.get_success_metadatas.return_value = []
+    now_time = datetime.now()
+    mock_service.return_value.save_result.return_value = ("/path/to/result", now_time)
+
+    # When
+    result = func_str_with_custom_metadata()
+
+    # Then
+    assert result == 42
+    mock_service.return_value.save_result.assert_called_with("func_str_with_custom_metadata", 42, "", None)
+    mock_service.return_value.save_success_metadata.assert_called_once_with(
+        func_name="func_str_with_custom_metadata",
+        output_folder="",
+        hashed_arguments=hash_arguments({"magic_number": 40}),
+        event_time=now_time,
+        result_path="/path/to/result",
+        result_type=int.__name__,
+        extra_metadata={"key": "value"},
+    )
 
 
 def test_should_not_check_result_if_disabled(mock_service: MagicMock) -> None:
@@ -204,7 +244,7 @@ def test_should_raise_error_sync(
     error_type: Exception,
     error_message: str,
     expected_data: dict,
-    mock_service: MagicMock
+    mock_service: MagicMock,
 ) -> None:
     # Given
     mock_service.return_value.is_enabled = True
@@ -222,6 +262,7 @@ def test_should_raise_error_sync(
         event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
         error_message=error_message,
         data=expected_data,
+        extra_metadata={},
     )
 
 
@@ -245,6 +286,32 @@ def test_should_use_output_folder_sync(mock_service: MagicMock) -> None:
         event_time=now_time,
         result_path="/path/to/result/toto",
         result_type=int.__name__,
+        extra_metadata={},
+    )
+
+
+@pytest.mark.asyncio
+async def test_should_add_custom_metadata_async(mock_service: MagicMock) -> None:
+    # Given
+    mock_service.return_value.is_enabled = True
+    mock_service.return_value.get_success_metadatas.return_value = []
+    now_time = datetime.now()
+    mock_service.return_value.save_result.return_value = ("/path/to/result", now_time)
+
+    # When
+    result = await async_func_str_with_custom_metadata()
+
+    # Then
+    assert result == 42
+    mock_service.return_value.save_result.assert_called_with("async_func_str_with_custom_metadata", 42, "", None)
+    mock_service.return_value.save_success_metadata.assert_called_once_with(
+        func_name="async_func_str_with_custom_metadata",
+        output_folder="",
+        hashed_arguments=hash_arguments({"magic_number": 40}),
+        event_time=now_time,
+        result_path="/path/to/result",
+        result_type=int.__name__,
+        extra_metadata={"key": "value"},
     )
 
 
@@ -312,6 +379,7 @@ async def test_should_return_result_async(metadata: Metadata | None, mock_servic
         event_time=now_time,
         result_path="/path/to/result",
         result_type=int.__name__,
+        extra_metadata={},
     )
 
 
@@ -345,7 +413,7 @@ async def test_should_raise_error_async(
     error_type: Exception,
     error_message: str,
     expected_data: dict,
-    mock_service: MagicMock
+    mock_service: MagicMock,
 ) -> None:
     # Given
     mock_service.return_value.is_enabled = True
@@ -363,4 +431,5 @@ async def test_should_raise_error_async(
         event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
         error_message=error_message,
         data=expected_data,
+        extra_metadata={},
     )

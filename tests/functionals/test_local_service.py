@@ -7,7 +7,7 @@ from constants import FILES, TEST_CONFIG_GLOBAL
 from job_test import run_job
 
 TEST_CONFIG_LOCAL = TEST_CONFIG_GLOBAL.copy()
-RESULT_PATH = Path(toml.load("pyproject.toml")['tool']['resnap']["output_base_path"])
+RESULT_PATH = Path(toml.load("pyproject.toml")["tool"]["resnap"]["output_base_path"])
 
 
 def execution_no_previous_save() -> list[Path]:

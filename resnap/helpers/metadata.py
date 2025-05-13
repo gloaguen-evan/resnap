@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime
@@ -9,11 +10,12 @@ from typing_extensions import Self
 from .status import Status
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class Metadata(ABC):
     status: Status
     event_time: datetime
     hashed_arguments: str
+    extra_metadata: dict[str, Any] | None = None
 
     @classmethod
     def from_dict(cls, data: dict) -> MetadataSuccess | MetadataFail:
@@ -26,7 +28,7 @@ class Metadata(ABC):
         raise NotImplementedError  # pragma: no cover
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class MetadataSuccess(Metadata):
     result_path: str
     result_type: str
@@ -39,19 +41,23 @@ class MetadataSuccess(Metadata):
             hashed_arguments=data["hashed_arguments"],
             result_path=data["result_path"],
             result_type=data["result_type"],
+            extra_metadata=data.get("extra_metadata", {}),
         )
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        metadata = {
             "status": self.status.value,
             "event_time": self.event_time.isoformat(),
             "hashed_arguments": self.hashed_arguments,
             "result_path": self.result_path,
             "result_type": self.result_type,
         }
+        if self.extra_metadata:
+            metadata["extra_metadata"] = self.extra_metadata
+        return metadata
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, kw_only=True)
 class MetadataFail(Metadata):
     error_message: str
     data: dict
@@ -64,6 +70,7 @@ class MetadataFail(Metadata):
             hashed_arguments=data["hashed_arguments"],
             error_message=data["error_message"],
             data=data.get("data", {}),
+            extra_metadata=data.get("extra_metadata", {}),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -75,4 +82,6 @@ class MetadataFail(Metadata):
         }
         if self.data:
             metadata["data"] = self.data
+        if self.extra_metadata:
+            metadata["extra_metadata"] = self.extra_metadata
         return metadata

@@ -12,6 +12,7 @@ from resnap.helpers.utils import hash_arguments
 class MetadataBuilder(ABC):
     _event_time: datetime = datetime.fromisoformat("2021-01-01T00:00:00")
     _hashed_arguments: str = ""
+    _extra_metadata: dict[str, Any] = {}
 
     @classmethod
     def a_metadata(cls) -> Self:
@@ -23,6 +24,10 @@ class MetadataBuilder(ABC):
 
     def with_arguments(self, arguments: dict[str, Any]) -> Self:
         self._hashed_arguments = hash_arguments(arguments)
+        return self
+
+    def with_extra_metadata(self, extra_metadata: dict[str, Any]) -> Self:
+        self._extra_metadata = extra_metadata
         return self
 
 
@@ -46,6 +51,7 @@ class MetadataSuccessBuilder(MetadataBuilder):
             hashed_arguments=self._hashed_arguments,
             result_path=self._result_path,
             result_type=self._result_type,
+            extra_metadata=self._extra_metadata,
         )
 
 
@@ -69,4 +75,5 @@ class MetadataFailBuilder(MetadataBuilder):
             hashed_arguments=self._hashed_arguments,
             error_message=self._error_message,
             data=self._data,
+            extra_metadata=self._extra_metadata,
         )

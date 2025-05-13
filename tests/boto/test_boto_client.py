@@ -158,9 +158,9 @@ class TestS3Client:
         mock_connection.return_value.__enter__.return_value.get_paginator.return_value.paginate.assert_called_once_with(
             **expected_paginate_call,
         )
-        mock_sort_folders_and_files.assert_called_once_with("test/*", [
-            {"Contents": [{"Key": "file1.txt"}, {"Key": "file2.txt"}]}
-        ])
+        mock_sort_folders_and_files.assert_called_once_with(
+            "test/*", [{"Contents": [{"Key": "file1.txt"}, {"Key": "file2.txt"}]}]
+        )
 
     def test_delete_object(self, mock_s3_client: S3Client, mock_connection: MagicMock) -> None:
         # When
@@ -257,7 +257,10 @@ class TestS3Client:
         mock_connection.return_value.__enter__.return_value.upload_fileobj.assert_called_once()
 
     def test_should_return_df_from_file(
-        self, mock_s3_client: S3Client, mock_connection: MagicMock, mock_dataframe_handler: MagicMock,
+        self,
+        mock_s3_client: S3Client,
+        mock_connection: MagicMock,
+        mock_dataframe_handler: MagicMock,
     ) -> None:
         # Given
         mock_dataframe_handler.return_value.read_df.return_value = MagicMock()
@@ -272,8 +275,7 @@ class TestS3Client:
         # Then
         assert result == mock_dataframe_handler.return_value.read_df.return_value
         mock_connection.return_value.__enter__.return_value.get_object.assert_called_once_with(
-            Bucket="test_bucket",
-            Key="test.csv"
+            Bucket="test_bucket", Key="test.csv"
         )
         mock_dataframe_handler.return_value.read_df.assert_called_once_with(
             mock_connection.return_value.__enter__.return_value.get_object.return_value["Body"],

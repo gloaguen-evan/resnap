@@ -16,7 +16,7 @@ from .service import ResnapService
 class LocalResnapService(ResnapService):
     def clear_old_saves(self) -> None:
         limit_time: datetime = calculate_datetime_from_now(
-            self.config.max_history_files_length, self.config.max_history_files_time_unit
+            self.config.max_history_files_length, self.config.max_history_files_time_unit,
         )
         folders: set[Path] = set()
         for f in Path(self.config.output_base_path).rglob("*"):
@@ -38,7 +38,7 @@ class LocalResnapService(ResnapService):
 
     @staticmethod
     def _read_metadata(metadata_path: Path) -> Metadata:
-        with open(metadata_path, 'r') as json_file:
+        with open(metadata_path, "r") as json_file:
             data = json.load(json_file)
         return Metadata.from_dict(data)
 
@@ -61,7 +61,7 @@ class LocalResnapService(ResnapService):
         return pd.read_csv(file_path, index_col=False)
 
     def _read_pickle(self, file_path: str) -> Any:
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             return pickle.load(f)
 
     def _read_text(self, file_path: str) -> str:
@@ -78,10 +78,10 @@ class LocalResnapService(ResnapService):
 
     @staticmethod
     def _save_dataframe_to_parquet(result: pd.DataFrame, result_path: str) -> None:
-        result.to_parquet(result_path, compression='gzip')
+        result.to_parquet(result_path, compression="gzip")
 
     def _save_to_pickle(self, result: Any, result_path: str) -> None:
-        with open(result_path, 'wb') as f:
+        with open(result_path, "wb") as f:
             pickle.dump(result, f)
 
     def _save_to_text(self, result: Any, result_path: str) -> None:
@@ -94,5 +94,5 @@ class LocalResnapService(ResnapService):
 
     @staticmethod
     def _write_metadata(metadata_path: str, metadata: Metadata) -> None:
-        with open(metadata_path, 'w') as json_file:
+        with open(metadata_path, "w") as json_file:
             json.dump(metadata.to_dict(), json_file, indent=4)

@@ -12,6 +12,21 @@ from resnap.helpers.utils import hash_arguments
 from resnap.services.boto_service import BotoResnapService
 from tests.builders.config_builder import ConfigBuilder
 
+s3_secrets: dict = {
+    "endpoint_url": "http://s3-server",
+    "access_key": "access_key",
+    "secret_key": "secret_key",
+    "bucket_name": "bucket",
+}
+
+
+@pytest.fixture(autouse=True)
+def mock_load_file(mocker) -> MagicMock:
+    mock: MagicMock = mocker.patch(
+        "resnap.services.boto_service.load_file", return_value=s3_secrets
+    )
+    return mock
+
 
 @pytest.fixture
 def mock_s3_client_object_exists(mocker) -> MagicMock:
@@ -68,13 +83,6 @@ def mock_read_metadata(mocker) -> MagicMock:
 
 
 class TestBotoService:
-    s3_secrets: dict = {
-        "endpoint_url": "http://s3-server",
-        "access_key": "access_key",
-        "secret_key": "secret_key",
-        "bucket_name": "bucket",
-    }
-
     @pytest.mark.parametrize(
         "path, expected",
         [
@@ -109,7 +117,7 @@ class TestBotoService:
         # Given
         mock_s3_client_object_exists.return_value = True
         mock_s3_client_list_objects.return_value = [file_path]
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
 
         # When
         service.clear_old_saves()
@@ -142,7 +150,7 @@ class TestBotoService:
             side_effects.append(["test.csv"])
         mock_s3_client_list_objects.side_effect = side_effects
         mock_s3_client_object_exists.return_value = True
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
 
         # When
         service.clear_old_saves()
@@ -158,7 +166,7 @@ class TestBotoService:
     ) -> None:
         # Given
         mock_s3_client_object_exists.return_value = False
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
 
         # When
         service.clear_old_saves()
@@ -168,13 +176,14 @@ class TestBotoService:
 
     def test_should_read_metadata(self, mock_s3_client_download_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         expected_metadata = MetadataSuccess(
             status=Status.SUCCESS,
             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
             result_path="test_2021-01-01T00:00:00.resnap.pkl",
             result_type="str",
             hashed_arguments=hash_arguments({"test": "toto"}),
+            extra_metadata={},
         )
         mock_s3_client_download_file.side_effect = lambda path, buffer: buffer.write(
             json.dumps(expected_metadata.to_dict()).encode()
@@ -193,7 +202,7 @@ class TestBotoService:
         mock_read_metadata: MagicMock,
     ) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         mock_s3_client_list_objects.return_value = [
             "test-metadata_2021-01-01T00:00:00.resnap",
             "test-metadata_2024-01-01T00:00:00.resnap",
@@ -228,7 +237,7 @@ class TestBotoService:
 
     def test_should_return_none_if_not_metadata(self, mock_s3_client_list_objects: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         mock_s3_client_list_objects.return_value = []
 
         # When
@@ -239,7 +248,7 @@ class TestBotoService:
 
     def test_should_write_metadata(self, mock_s3_client_upload_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         metadata = MetadataSuccess(
             status=Status.SUCCESS,
             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
@@ -261,7 +270,7 @@ class TestBotoService:
 
     def test_should_save_dataframe_to_parquet(self, mock_s3_client_push_df_to_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         result = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
         result_path = "test.parquet"
 
@@ -270,12 +279,12 @@ class TestBotoService:
 
         # Then
         mock_s3_client_push_df_to_file.assert_called_once_with(
-            result, "test.parquet", compression='gzip', file_format="parquet"
+            result, "test.parquet", compression="gzip", file_format="parquet"
         )
 
     def test_should_save_dataframe_to_csv(self, mock_s3_client_push_df_to_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         result = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
         result_path = "test.csv"
 
@@ -287,7 +296,7 @@ class TestBotoService:
 
     def test_should_save_to_pickle(self, mock_s3_client_upload_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         result = {"key": "value"}
         result_path = "test.pkl"
 
@@ -301,7 +310,7 @@ class TestBotoService:
 
     def test_should_save_to_text(self, mock_s3_client_upload_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         result = "toto"
         result_path = "test.txt"
 
@@ -315,7 +324,7 @@ class TestBotoService:
 
     def test_should_save_to_json(self, mock_s3_client_upload_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         result = {"key": "value"}
         result_path = "test.json"
 
@@ -329,7 +338,7 @@ class TestBotoService:
 
     def test_should_read_parquet_to_dataframe(self, mock_s3_client_get_df_from_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         file_path = "test.parquet"
         expected_df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
         mock_s3_client_get_df_from_file.return_value = expected_df
@@ -343,7 +352,7 @@ class TestBotoService:
 
     def test_should_read_csv_to_dataframe(self, mock_s3_client_get_df_from_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         file_path = "test.csv"
         expected_df = pd.DataFrame({"col1": [1, 2], "col2": [3, 4]})
         mock_s3_client_get_df_from_file.return_value = expected_df
@@ -357,7 +366,7 @@ class TestBotoService:
 
     def test_should_read_pickle(self, mock_s3_client_download_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         file_path = "test.pkl"
         expected_data = {"key": "value"}
         mock_s3_client_download_file.side_effect = lambda path, buffer: buffer.write(pickle.dumps(expected_data))
@@ -371,7 +380,7 @@ class TestBotoService:
 
     def test_should_read_text(self, mock_s3_client_download_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         file_path = "test.txt"
         expected_data = "toto"
         mock_s3_client_download_file.side_effect = lambda path, buffer: buffer.write(expected_data.encode())
@@ -385,7 +394,7 @@ class TestBotoService:
 
     def test_should_read_json(self, mock_s3_client_download_file: MagicMock) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         file_path = "test.json"
         expected_data = {"key": "value"}
         mock_s3_client_download_file.side_effect = (
@@ -423,7 +432,7 @@ class TestBotoService:
         mock_s3_client_object_exists: MagicMock,
     ) -> None:
         # Given
-        service = BotoResnapService(ConfigBuilder.a_config().build(), self.s3_secrets)
+        service = BotoResnapService(ConfigBuilder.a_config().build())
         side_effects = []
         if path:
             side_effects.append(is_exists_path)

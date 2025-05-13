@@ -4,11 +4,7 @@ from abc import ABC, abstractmethod
 from os import path
 
 import pandas as pd
-
-try:
-    import pyarrow as pa
-except ImportError:  # pragma: no cover
-    pa = None
+import pyarrow as pa
 
 BufferType = io.FileIO | io.BytesIO | io.StringIO
 _SUPPORTED_COMPRESSIONS = ["gzip"]
@@ -38,9 +34,7 @@ class DataFrameHandler(ABC):
             return
         if compression not in AVAILABLE_COMPRESSIONS:
             raise ValueError(
-                "{} not supported. It must be in this list: {}".format(
-                    compression, ", ".join([*AVAILABLE_COMPRESSIONS])
-                )
+                f"{compression} not supported. It must be in this list: {', '.join(AVAILABLE_COMPRESSIONS)}"
             )
         else:
             _, extension = path.splitext(filepath)
@@ -48,7 +42,7 @@ class DataFrameHandler(ABC):
             if available_extensions != ["*"] and extension not in available_extensions:
                 raise ValueError(
                     f"A {compression}-compressed file must have an extension in this "
-                    "list: {', '.join(available_extensions)}"
+                    f"list: {', '.join(available_extensions)}"
                 )
 
 
@@ -63,11 +57,11 @@ class CSVHandler(DataFrameHandler):
         if nrows is not None and compression == "gzip":  # top N from gzip file
             return CSVHandler._read_df_nrows_gzip(bytes_object, nrows=nrows, **kwargs)
         elif nrows is not None:  # top N from file
-            return CSVHandler._read_df_nrows(bytes_object, nrows=nrows, compresison=compression, **kwargs)
+            return CSVHandler._read_df_nrows(bytes_object, nrows=nrows, compression=compression, **kwargs)
         return CSVHandler._read_df(bytes_object, compression, **kwargs)  # default behaviour
 
     @staticmethod
-    def write_df(df: pd.DataFrame, compression: str | None = None, **kwargs) -> BufferType:
+    def write_df(df: pd.DataFrame, compression: str | None = None, **kwargs) -> io.BytesIO:
         if not compression:
             buffer = io.StringIO()
             df.to_csv(buffer, **kwargs)
@@ -115,19 +109,12 @@ class ParquetHandler(DataFrameHandler):
     @staticmethod
     def read_df(bytes_object: BufferType, **kwargs) -> pd.DataFrame:
         kwargs.pop("engine", None)
-        if not pa:
-            raise ImportError("You need to install pyarrow to read parquet: `pip install pyarrow`")
-
         reader = pa.BufferReader(bytes_object)
-        # compression is automatically handled by read_parquet function
         return pd.read_parquet(reader, engine="pyarrow", **kwargs)
 
     @staticmethod
-    def write_df(df: pd.DataFrame, compression: str | None = None, **kwargs) -> BufferType:
+    def write_df(df: pd.DataFrame, compression: str | None = None, **kwargs) -> io.BytesIO:
         kwargs.pop("engine", None)
-        if not pa:
-            raise ImportError("You need to install pyarrow to write parquet: `pip install pyarrow`")
-
         buffer = io.BytesIO()
         df.to_parquet(buffer, engine="pyarrow", compression=compression, **kwargs)
         buffer.seek(0)
@@ -142,6 +129,6 @@ HANDLERS_MAP = {
 
 def get_dataframe_handler(file_format: str = "csv") -> DataFrameHandler:
     if file_format not in HANDLERS_MAP.keys():
-        raise ValueError("{} is not supported. Valid ones are {}.".format(file_format, ", ".join(HANDLERS_MAP.keys())))
+        raise ValueError(f"{file_format} is not supported. Valid ones are {', '.join(HANDLERS_MAP)}.")
 
     return HANDLERS_MAP[file_format]

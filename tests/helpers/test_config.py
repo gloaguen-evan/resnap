@@ -15,45 +15,58 @@ class TestConfig:
     @pytest.mark.parametrize(
         "config",
         [
+            pytest.param({"save_to": Services.LOCAL}, id="missing enabled"),
             pytest.param(
-                {"save_to": Services.LOCAL},
-                id="missing enabled"
+                {"save_to": Services.LOCAL, "enabled": 5}, id="wrong enabled type"
             ),
-            pytest.param(
-                {"save_to": Services.LOCAL, "enabled": 5},
-                id="wrong enabled type"
-            ),
-            pytest.param(
-                {"enabled": True, "save_to": "test"},
-                id="unknown save_to"
-            ),
+            pytest.param({"enabled": True, "save_to": "test"}, id="unknown save_to"),
             pytest.param(
                 {"enabled": True, "save_to": Services.LOCAL, "output_base_path": 25},
-                id="wrong output_base_path type"
+                id="wrong output_base_path type",
             ),
             pytest.param(
                 {"enabled": True, "save_to": Services.LOCAL, "secrets_file_name": 25},
-                id="wrong secrets_file_name type"
+                id="wrong secrets_file_name type",
             ),
             pytest.param(
-                {"enabled": True, "save_to": Services.LOCAL, "enable_remove_old_files": "test"},
-                id="wrong enable_remove_old_files type"
+                {
+                    "enabled": True,
+                    "save_to": Services.LOCAL,
+                    "enable_remove_old_files": "test",
+                },
+                id="wrong enable_remove_old_files type",
             ),
             pytest.param(
-                {"enabled": True, "save_to": Services.LOCAL, "max_history_files_length": "test"},
-                id="wrong max_history_files_length type"
+                {
+                    "enabled": True,
+                    "save_to": Services.LOCAL,
+                    "max_history_files_length": "test",
+                },
+                id="wrong max_history_files_length type",
             ),
             pytest.param(
-                {"enabled": True, "save_to": Services.LOCAL, "max_history_files_length": -5},
-                id="wrong max_history_files_length value"
+                {
+                    "enabled": True,
+                    "save_to": Services.LOCAL,
+                    "max_history_files_length": -5,
+                },
+                id="wrong max_history_files_length value",
             ),
             pytest.param(
-                {"enabled": True, "save_to": Services.LOCAL, "max_history_files_time_unit": 5},
-                id="wrong max_history_files_time_unit type"
+                {
+                    "enabled": True,
+                    "save_to": Services.LOCAL,
+                    "max_history_files_time_unit": 5,
+                },
+                id="wrong max_history_files_time_unit type",
             ),
             pytest.param(
-                {"enabled": True, "save_to": Services.LOCAL, "max_history_files_time_unit": "test"},
-                id="wrong max_history_files_time_unit value"
+                {
+                    "enabled": True,
+                    "save_to": Services.LOCAL,
+                    "max_history_files_time_unit": "test",
+                },
+                id="wrong max_history_files_time_unit value",
             ),
         ],
     )

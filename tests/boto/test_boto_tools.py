@@ -41,9 +41,19 @@ def test_format_remote_path_folder_to_search(path: str, expected: str) -> None:
         pytest.param(
             "test/path/*",
             [
-                {"Contents": [{"Key": "test/path/file1.txt"}, {"Key": "test/path/sub_path/"}]},
+                {
+                    "Contents": [
+                        {"Key": "test/path/file1.txt"},
+                        {"Key": "test/path/sub_path/"},
+                    ]
+                },
                 {"CommonPrefixes": [{"Prefix": "test/path/folder1/"}]},
-                {"Contents": [{"Key": "test/path/file2.txt"}, {"Key": "test/path/folder2/file2.txt"}]},
+                {
+                    "Contents": [
+                        {"Key": "test/path/file2.txt"},
+                        {"Key": "test/path/folder2/file2.txt"},
+                    ]
+                },
             ],
             [
                 "test/path/file1.txt",
@@ -58,9 +68,19 @@ def test_format_remote_path_folder_to_search(path: str, expected: str) -> None:
         pytest.param(
             "test/path/*.txt",
             [
-                {"Contents": [{"Key": "test/path/file1.txt"}, {"Key": "test/path/sub_path/"}]},
+                {
+                    "Contents": [
+                        {"Key": "test/path/file1.txt"},
+                        {"Key": "test/path/sub_path/"},
+                    ]
+                },
                 {"CommonPrefixes": [{"Prefix": "test/path/folder1/"}]},
-                {"Contents": [{"Key": "test/path/file2.csv"}, {"Key": "test/path/folder2/file2.json"}]},
+                {
+                    "Contents": [
+                        {"Key": "test/path/file2.csv"},
+                        {"Key": "test/path/folder2/file2.json"},
+                    ]
+                },
             ],
             [
                 "test/path/file1.txt",
@@ -73,8 +93,18 @@ def test_format_remote_path_folder_to_search(path: str, expected: str) -> None:
             "test/path/*/toto/*.txt",
             [
                 {"Contents": [{"Key": "test/path/file1.txt"}]},
-                {"Contents": [{"Key": "test/path/file2.csv"}, {"Key": "test/path/folder2/file2.json"}]},
-                {"Contents": [{"Key": "test/path/toto/file2.csv"}, {"Key": "test/path/toto/file2.txt"}]},
+                {
+                    "Contents": [
+                        {"Key": "test/path/file2.csv"},
+                        {"Key": "test/path/folder2/file2.json"},
+                    ]
+                },
+                {
+                    "Contents": [
+                        {"Key": "test/path/toto/file2.csv"},
+                        {"Key": "test/path/toto/file2.txt"},
+                    ]
+                },
             ],
             [
                 "test/path/toto/",
@@ -86,8 +116,18 @@ def test_format_remote_path_folder_to_search(path: str, expected: str) -> None:
             "test/path/*toto/*.txt",
             [
                 {"Contents": [{"Key": "test/path/file1.txt"}]},
-                {"Contents": [{"Key": "test/path/file2.csv"}, {"Key": "test/path/folder2/file2.json"}]},
-                {"Contents": [{"Key": "test/path/toto/file2.csv"}, {"Key": "test/path/toto/file2.txt"}]},
+                {
+                    "Contents": [
+                        {"Key": "test/path/file2.csv"},
+                        {"Key": "test/path/folder2/file2.json"},
+                    ]
+                },
+                {
+                    "Contents": [
+                        {"Key": "test/path/toto/file2.csv"},
+                        {"Key": "test/path/toto/file2.txt"},
+                    ]
+                },
             ],
             [
                 "test/path/toto/",

@@ -28,7 +28,7 @@ def get_function_signature(
     func_name = ""
     arguments = {}
     for i, (name, value) in enumerate(bound_args.arguments.items()):
-        if i == 0 and name in ('self', 'cls'):
+        if i == 0 and name in ("self", "cls"):
             arguments.update(get_attributes(value, considered_attributes))
             continue
         arguments[name] = value

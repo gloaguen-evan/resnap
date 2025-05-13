@@ -6,6 +6,7 @@ from typing import Any, ParamSpec, TypeVar
 
 from .exceptions import ResnapError
 from .factory import ResnapServiceFactory
+from .helpers.context import clear_metadata, get_metadata
 from .helpers.results_retriver import ResultsRetriver
 from .services.service import ResnapService
 
@@ -18,6 +19,7 @@ def _save(
     output_folder: str,
     hashed_arguments: str,
     result: Any,
+    extra_metadata: dict,
     output_format: str | None = None,
 ) -> None:
     logger.debug("Saving result...")
@@ -29,11 +31,13 @@ def _save(
         event_time=event_time,
         result_path=result_path,
         result_type=type(result).__name__,
+        extra_metadata=extra_metadata,
     )
 
 
 def _clear(service: ResnapService) -> None:
     logger.debug("Clearing old saves...")
+    clear_metadata()
     service.clear_old_saves()
 
 
@@ -80,12 +84,13 @@ def resnap(_func: Callable[P, R] | None = None, **options: Any) -> Callable[P, R
             logger.debug(f"Executing function {results_retriver.func_name}...")
             result = _func(*args, **kwargs)
             _save(
-                service,
-                results_retriver.func_name,
-                results_retriver.output_folder,
-                results_retriver.hashed_arguments,
-                result,
-                options.get("output_format"),
+                service=service,
+                func_name=results_retriver.func_name,
+                output_folder=results_retriver.output_folder,
+                hashed_arguments=results_retriver.hashed_arguments,
+                result=result,
+                extra_metadata=get_metadata(),
+                output_format=options.get("output_format"),
             )
             return result
 
@@ -97,6 +102,7 @@ def resnap(_func: Callable[P, R] | None = None, **options: Any) -> Callable[P, R
                 event_time=datetime.now(),
                 error_message=str(e),
                 data=e.data if isinstance(e, ResnapError) else {},
+                extra_metadata=get_metadata(),
             )
             raise e
 
@@ -145,12 +151,14 @@ def async_resnap(
             logger.debug(f"Executing function {results_retriver.func_name}...")
             result = await _func(*args, **kwargs)
             _save(
-                service,
-                results_retriver.func_name,
-                results_retriver.output_folder,
-                results_retriver.hashed_arguments,
-                result,
-                options.get("output_format"))
+                service=service,
+                func_name=results_retriver.func_name,
+                output_folder=results_retriver.output_folder,
+                hashed_arguments=results_retriver.hashed_arguments,
+                result=result,
+                extra_metadata=get_metadata(),
+                output_format=options.get("output_format"),
+            )
             return result
 
         except Exception as e:
@@ -161,6 +169,7 @@ def async_resnap(
                 event_time=datetime.now(),
                 error_message=str(e),
                 data=e.data if isinstance(e, ResnapError) else {},
+                extra_metadata=get_metadata(),
             )
             raise e
 

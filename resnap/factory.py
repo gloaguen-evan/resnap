@@ -37,13 +37,7 @@ class ResnapServiceFactory:
         elif _resnap_config.save_to == Services.S3:
             from .services.boto_service import BotoResnapService
 
-            # TODO: implement a way to get the secrets from the config
-            temp_dict = {
-                "access_key": "toto",
-                "secret_key": "toto",
-                "bucket_name": "toto",
-            }
-            _service = BotoResnapService(_resnap_config, temp_dict)
+            _service = BotoResnapService(_resnap_config)
         else:
             raise NotImplementedError(f"Resnap service {_resnap_config.save_to} is not implemented")
         return _service

@@ -17,6 +17,7 @@ class S3Client:
         config (S3Config): Configuration object containing S3 connection details.
         bucket_name (str): The name of the S3 bucket.
     """
+
     def __init__(self, config: S3Config) -> None:
         self.config = config
         self.bucket_name = config.bucket_name
@@ -130,7 +131,7 @@ class S3Client:
 
         remote_path = remove_separator_at_begin(remote_path)
         if not self.object_exists(remote_path):
-            raise FileNotFoundError("File {} not exists in bucket {}".format(remote_path, self.bucket_name))
+            raise FileNotFoundError(f"File {remote_path} not exists in bucket {self.bucket_name}")
 
         with get_s3_connection(self.config) as connection:
             bytes_object = connection.get_object(Bucket=self.bucket_name, Key=remote_path)["Body"]

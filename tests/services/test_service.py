@@ -21,85 +21,109 @@ def reset_singletons() -> None:
 
 @pytest.fixture(autouse=True)
 def mock_read_parquet_to_dataframe(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._read_parquet_to_dataframe")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._read_parquet_to_dataframe"
+    )
     return mock
 
 
 @pytest.fixture(autouse=True)
 def mock_read_csv_to_dataframe(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._read_csv_to_dataframe")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._read_csv_to_dataframe"
+    )
     return mock
 
 
 @pytest.fixture(autouse=True)
 def mock_read_pickle(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._read_pickle")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._read_pickle"
+    )
     return mock
 
 
 @pytest.fixture(autouse=True)
 def mock_read_text(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._read_text")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._read_text"
+    )
     return mock
 
 
 @pytest.fixture(autouse=True)
 def mock_read_json(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._read_json")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._read_json"
+    )
     return mock
 
 
 @pytest.fixture(autouse=True)
 def mock_save_dataframe_to_parquet(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._save_dataframe_to_parquet")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._save_dataframe_to_parquet"
+    )
     return mock
 
 
 @pytest.fixture(autouse=True)
 def mock_save_dataframe_to_csv(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._save_dataframe_to_csv")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._save_dataframe_to_csv"
+    )
     return mock
 
 
 @pytest.fixture(autouse=True)
 def mock_save_to_pickle(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._save_to_pickle")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._save_to_pickle"
+    )
     return mock
 
 
 @pytest.fixture(autouse=True)
 def mock_save_to_text(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._save_to_text")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._save_to_text"
+    )
     return mock
 
 
 @pytest.fixture(autouse=True)
 def mock_save_to_json(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._save_to_json")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._save_to_json"
+    )
     return mock
 
 
 @pytest.fixture(autouse=True)
 def mock_write_metadata(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._write_metadata")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._write_metadata"
+    )
     return mock
 
 
 @pytest.fixture(autouse=True)
 def mock_create_folder(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch("resnap.services.local_service.LocalResnapService._create_folder")
+    mock: MagicMock = mocker.patch(
+        "resnap.services.local_service.LocalResnapService._create_folder"
+    )
     return mock
 
 
 class TestServicce:
     hashed_arguments: str = hash_arguments({"toto": "toto"})
 
-    @pytest.mark.parametrize(
-        "enabled", [True, False]
-    )
+    @pytest.mark.parametrize("enabled", [True, False])
     def test_should_return_if_service_is_enabled(self, enabled: bool) -> None:
         # Given
-        service = LocalResnapService(config=ConfigBuilder.a_config().is_enabled(enabled).build())
+        service = LocalResnapService(
+            config=ConfigBuilder.a_config().is_enabled(enabled).build()
+        )
         assert service.is_enabled == enabled
 
     @pytest.mark.parametrize(
@@ -107,12 +131,16 @@ class TestServicce:
         [
             ("", "", "test_2021-01-01T00:00:00.resnap"),
             ("output", "", "output/test_2021-01-01T00:00:00.resnap"),
-            ("output", "test", "output/test/test_2021-01-01T00:00:00.resnap")
+            ("output", "test", "output/test/test_2021-01-01T00:00:00.resnap"),
         ],
     )
-    def test_should_return_metadata_path(self, output_path: str, output_folder: str, expected: str) -> None:
+    def test_should_return_metadata_path(
+        self, output_path: str, output_folder: str, expected: str
+    ) -> None:
         # Given
-        service = LocalResnapService(config=ConfigBuilder.a_config().with_output_base_path(output_path).build())
+        service = LocalResnapService(
+            config=ConfigBuilder.a_config().with_output_base_path(output_path).build()
+        )
         func_name = "test"
         event_time = datetime.fromisoformat("2021-01-01T00:00:00")
 
@@ -127,12 +155,16 @@ class TestServicce:
         [
             ("", "", "test_2021-01-01T00:00:00.resnap.ext"),
             ("output", "", "output/test_2021-01-01T00:00:00.resnap.ext"),
-            ("output", "test", "output/test/test_2021-01-01T00:00:00.resnap.ext")
+            ("output", "test", "output/test/test_2021-01-01T00:00:00.resnap.ext"),
         ],
     )
-    def test_should_return_result_path(self, output_path: str, output_folder: str, expected: str) -> None:
+    def test_should_return_result_path(
+        self, output_path: str, output_folder: str, expected: str
+    ) -> None:
         # Given
-        service = LocalResnapService(config=ConfigBuilder.a_config().with_output_base_path(output_path).build())
+        service = LocalResnapService(
+            config=ConfigBuilder.a_config().with_output_base_path(output_path).build()
+        )
         func_name = "test"
         event_time = datetime.fromisoformat("2021-01-01T00:00:00")
 
@@ -146,8 +178,16 @@ class TestServicce:
         "result_path, expected_mock, result_type",
         [
             ("test_2021-01-01T00:00:00.resnap.pkl", "mock_read_pickle", "str"),
-            ("test_2021-01-01T00:00:00.resnap.parquet.gz", "mock_read_parquet_to_dataframe", "pd.DataFrame"),
-            ("test_2021-01-01T00:00:00.resnap.csv", "mock_read_csv_to_dataframe", "pd.DataFrame"),
+            (
+                "test_2021-01-01T00:00:00.resnap.parquet.gz",
+                "mock_read_parquet_to_dataframe",
+                "pd.DataFrame",
+            ),
+            (
+                "test_2021-01-01T00:00:00.resnap.csv",
+                "mock_read_csv_to_dataframe",
+                "pd.DataFrame",
+            ),
             ("test_2021-01-01T00:00:00.resnap.txt", "mock_read_text", "str"),
             ("test_2021-01-01T00:00:00.resnap.json", "mock_read_json", "str"),
         ],
@@ -185,7 +225,9 @@ class TestServicce:
             ("bool", True),
         ],
     )
-    def test_should_cast_result_if_file_is_text(self, result_type: str, result: Any, mock_read_text: MagicMock) -> None:
+    def test_should_cast_result_if_file_is_text(
+        self, result_type: str, result: Any, mock_read_text: MagicMock
+    ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         metadata = MetadataSuccess(
@@ -226,7 +268,9 @@ class TestServicce:
         )
 
         # When / Then
-        with pytest.raises(NotImplementedError, match=f"Unsupported result type: {result_type}"):
+        with pytest.raises(
+            NotImplementedError, match=f"Unsupported result type: {result_type}"
+        ):
             service.read_result(metadata)
 
     @freezegun.freeze_time("2021-01-01")
@@ -240,22 +284,30 @@ class TestServicce:
             ({"test": 1}, "json", "", "mock_save_to_json", "json"),
             ({"test": 1}, "json", "toto", "mock_save_to_json", "json"),
             (
-                pd.DataFrame({
-                    "A": [1, 2, 3],
-                    "B": [4, 5, 6],
-                    "C": [7, 8, 9],
-                }),
-                None, "",
-                "mock_save_dataframe_to_parquet", "parquet.gz",
+                pd.DataFrame(
+                    {
+                        "A": [1, 2, 3],
+                        "B": [4, 5, 6],
+                        "C": [7, 8, 9],
+                    }
+                ),
+                None,
+                "",
+                "mock_save_dataframe_to_parquet",
+                "parquet.gz",
             ),
             (
-                pd.DataFrame({
-                    "A": [1, 2, 3],
-                    "B": [4, 5, 6],
-                    "C": [7, 8, 9],
-                }),
-                "csv", "",
-                "mock_save_dataframe_to_csv", "csv",
+                pd.DataFrame(
+                    {
+                        "A": [1, 2, 3],
+                        "B": [4, 5, 6],
+                        "C": [7, 8, 9],
+                    }
+                ),
+                "csv",
+                "",
+                "mock_save_dataframe_to_csv",
+                "csv",
             ),
         ],
     )
@@ -273,13 +325,19 @@ class TestServicce:
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         expected_event_time: datetime = datetime.fromisoformat("2021-01-01T00:00:00")
         output_path = f"{output_folder}/" if output_folder else ""
-        expected_result_path: str = f"{output_path}test_2021-01-01T00:00:00.resnap.{expected_result_ext}"
+        expected_result_path: str = (
+            f"{output_path}test_2021-01-01T00:00:00.resnap.{expected_result_ext}"
+        )
 
         # When
-        result_path, event_time = service.save_result("test", func_result, output_folder, output_format)
+        result_path, event_time = service.save_result(
+            "test", func_result, output_folder, output_format
+        )
 
         # Then
-        mock.assert_called_once_with(result=func_result, result_path=expected_result_path)
+        mock.assert_called_once_with(
+            result=func_result, result_path=expected_result_path
+        )
         assert result_path == expected_result_path
         assert event_time == expected_event_time
 
@@ -294,15 +352,24 @@ class TestServicce:
             hashed_arguments=self.hashed_arguments,
             result_path=expected_result_path,
             result_type="str",
+            extra_metadata={},
         )
 
         # When
         service.save_success_metadata(
-            "test", "", self.hashed_arguments, expected_event_time, expected_result_path, "str",
+            "test",
+            "",
+            self.hashed_arguments,
+            expected_event_time,
+            expected_result_path,
+            "str",
+            extra_metadata={},
         )
 
         # Then
-        mock_write_metadata.assert_called_once_with("test_2021-01-01T00:00:00.resnap", metadata)
+        mock_write_metadata.assert_called_once_with(
+            "test_2021-01-01T00:00:00.resnap", metadata
+        )
 
     def test_should_save_failed_metadata(self, mock_write_metadata: MagicMock) -> None:
         # Given
@@ -314,11 +381,18 @@ class TestServicce:
             hashed_arguments=self.hashed_arguments,
             error_message="error",
             data={"id": 1},
+            extra_metadata={},
         )
 
         # When
         service.save_failed_metadata(
-            "test", "", self.hashed_arguments, expected_event_time, error_message="error", data={"id": 1},
+            "test",
+            "",
+            self.hashed_arguments,
+            expected_event_time,
+            error_message="error",
+            data={"id": 1},
+            extra_metadata={},
         )
 
         # Then
@@ -335,9 +409,13 @@ class TestServicce:
             ("results", "test"),
         ],
     )
-    def test_should_create_folder(self, path: str, output_folder: str, mock_create_folder: MagicMock) -> None:
+    def test_should_create_folder(
+        self, path: str, output_folder: str, mock_create_folder: MagicMock
+    ) -> None:
         # Given
-        service = LocalResnapService(config=ConfigBuilder.a_config().with_output_base_path(path).build())
+        service = LocalResnapService(
+            config=ConfigBuilder.a_config().with_output_base_path(path).build()
+        )
         expected_calls = []
         if path:
             expected_calls.append(call("", path))

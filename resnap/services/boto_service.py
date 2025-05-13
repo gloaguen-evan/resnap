@@ -11,14 +11,16 @@ from ..helpers.config import Config
 from ..helpers.constants import EXT, SEPATOR
 from ..helpers.metadata import Metadata
 from ..helpers.status import Status
-from ..helpers.utils import calculate_datetime_from_now, get_datetime_from_filename
+from ..helpers.utils import calculate_datetime_from_now, get_datetime_from_filename, load_file
 from .service import ResnapService
 
 
 class BotoResnapService(ResnapService):
-    def __init__(self, config: Config, secrets: dict | None = None) -> None:
+    def __init__(self, config: Config) -> None:
         super().__init__(config)
-        self._client: S3Client = S3Client(S3Config(**secrets))
+        self._client: S3Client = S3Client(
+            S3Config(**load_file(config.secrets_file_name, key="resnap"))
+        )
 
     @staticmethod
     def _format_path(path: str) -> str:
@@ -35,7 +37,7 @@ class BotoResnapService(ResnapService):
 
     def _clear_files(self, files: list[str]) -> list[str]:
         limit_time: datetime = calculate_datetime_from_now(
-            self.config.max_history_files_length, self.config.max_history_files_time_unit
+            self.config.max_history_files_length, self.config.max_history_files_time_unit,
         )
 
         folders: set = set()

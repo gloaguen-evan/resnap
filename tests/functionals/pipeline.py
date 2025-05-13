@@ -6,7 +6,7 @@ from dependency_injector.wiring import Provide, inject
 
 from resnap import ResnapError, async_resnap, resnap
 
-exec_time = datetime.now().strftime('%Y-%m-%d-%H-%M-%S')
+exec_time = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
 
 
 @resnap

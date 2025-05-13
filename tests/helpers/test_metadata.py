@@ -52,6 +52,7 @@ class TestMetadataSuccess:
             hashed_arguments=hashed_arguments,
             result_path="/path/to/result",
             result_type="str",
+            extra_metadata={"key": "value"},
         )
 
         # When
@@ -64,6 +65,7 @@ class TestMetadataSuccess:
             "hashed_arguments": hashed_arguments,
             "result_path": "/path/to/result",
             "result_type": "str",
+            "extra_metadata": {"key": "value"},
         }
 
     def test_should_return_metadata_from_dict(self) -> None:
@@ -74,6 +76,7 @@ class TestMetadataSuccess:
             "hashed_arguments": hashed_arguments,
             "result_path": "/path/to/result",
             "result_type": "str",
+            "extra_metadata": {"key": "value"},
         }
 
         # When
@@ -85,6 +88,7 @@ class TestMetadataSuccess:
         assert metadata.hashed_arguments == hashed_arguments
         assert metadata.result_path == "/path/to/result"
         assert metadata.result_type == "str"
+        assert metadata.extra_metadata == {"key": "value"}
 
 
 class TestMetadataFail:
@@ -96,6 +100,7 @@ class TestMetadataFail:
             hashed_arguments=hashed_arguments,
             error_message="oopsi an error",
             data={},
+            extra_metadata={},
         )
 
         # When
@@ -117,6 +122,7 @@ class TestMetadataFail:
             hashed_arguments=hashed_arguments,
             error_message="oopsi an error",
             data={"key": "value"},
+            extra_metadata={"key": "value"},
         )
 
         # When
@@ -129,6 +135,7 @@ class TestMetadataFail:
             "hashed_arguments": hashed_arguments,
             "error_message": "oopsi an error",
             "data": {"key": "value"},
+            "extra_metadata": {"key": "value"},
         }
 
     def test_should_return_metadata_from_dict(self) -> None:
@@ -138,6 +145,7 @@ class TestMetadataFail:
             "event_time": "2021-01-01T00:00:00",
             "hashed_arguments": hashed_arguments,
             "error_message": "oopsi an error",
+            "extra_metadata": {"key": "value"},
         }
 
         # When
@@ -149,3 +157,4 @@ class TestMetadataFail:
         assert metadata.hashed_arguments == hashed_arguments
         assert metadata.error_message == "oopsi an error"
         assert not metadata.data
+        assert metadata.extra_metadata == {"key": "value"}

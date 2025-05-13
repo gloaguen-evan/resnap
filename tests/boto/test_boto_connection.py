@@ -9,10 +9,10 @@ from resnap.boto.connection import get_s3_connection
 
 def config_equal(config1: Config, config2: Config) -> bool:
     return (
-        config1.signature_version == config2.signature_version and
-        config1.s3 == config2.s3 and
-        config1.request_checksum_calculation == config2.request_checksum_calculation and
-        config1.response_checksum_validation == config2.response_checksum_validation
+        config1.signature_version == config2.signature_version
+        and config1.s3 == config2.s3
+        and config1.request_checksum_calculation == config2.request_checksum_calculation
+        and config1.response_checksum_validation == config2.response_checksum_validation
     )
 
 

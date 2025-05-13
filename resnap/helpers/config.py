@@ -20,7 +20,7 @@ class Config(BaseModel):
     max_history_files_length: int = Field(gt=0, default=3)
     max_history_files_time_unit: TimeUnit = TimeUnit.DAY
 
-    @model_validator(mode='after')
+    @model_validator(mode="after")
     def check_secrets_file_name(self) -> Self:
         if self.save_to != Services.LOCAL and not self.secrets_file_name:
             raise ValueError(f"secrets_file_name is required when save_to is {self.save_to.value}")

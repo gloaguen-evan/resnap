@@ -11,24 +11,32 @@ class TestS3Config:
         "config",
         [
             pytest.param(
-                {"access_key": "key", "secret_key": "secret"},
-                id="missing bucket_name"
+                {"access_key": "key", "secret_key": "secret"}, id="missing bucket_name"
             ),
             pytest.param(
-                {"access_key": "key", "bucket_name": "bucket"},
-                id="missing secret_key"
+                {"access_key": "key", "bucket_name": "bucket"}, id="missing secret_key"
             ),
             pytest.param(
                 {"secret_key": "secret", "bucket_name": "bucket"},
-                id="missing access_key"
+                id="missing access_key",
             ),
             pytest.param(
-                {"access_key": "key", "secret_key": "secret", "bucket_name": "bucket", "force_path_style": "invalid"},
-                id="invalid force_path_style type"
+                {
+                    "access_key": "key",
+                    "secret_key": "secret",
+                    "bucket_name": "bucket",
+                    "force_path_style": "invalid",
+                },
+                id="invalid force_path_style type",
             ),
             pytest.param(
-                {"access_key": "key", "secret_key": "secret", "bucket_name": "bucket", "signature_version": 123},
-                id="invalid signature_version type"
+                {
+                    "access_key": "key",
+                    "secret_key": "secret",
+                    "bucket_name": "bucket",
+                    "signature_version": 123,
+                },
+                id="invalid signature_version type",
             ),
         ],
     )

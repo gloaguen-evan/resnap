@@ -8,19 +8,19 @@ from tests.builders.metadata_builder import MetadataSuccessBuilder
 
 @pytest.fixture
 def mock_service(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch('resnap.helpers.results_retriver.ResnapService', return_value=MagicMock())
+    mock: MagicMock = mocker.patch("resnap.helpers.results_retriver.ResnapService", return_value=MagicMock())
     return mock
 
 
 @pytest.fixture
 def mock_get_function_signature(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch('resnap.helpers.results_retriver.get_function_signature')
+    mock: MagicMock = mocker.patch("resnap.helpers.results_retriver.get_function_signature")
     return mock
 
 
 @pytest.fixture
 def mock_hash_arguments(mocker) -> MagicMock:
-    mock: MagicMock = mocker.patch('resnap.helpers.results_retriver.hash_arguments')
+    mock: MagicMock = mocker.patch("resnap.helpers.results_retriver.hash_arguments")
     return mock
 
 

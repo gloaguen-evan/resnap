@@ -1,8 +1,8 @@
 """The `version` module holds the version information for resnap."""
 
-__all__ = 'VERSION'
+__all__ = "VERSION"
 
-VERSION = '0.0.1'
+VERSION = "0.0.1"
 """The version of resnap."""
 
 
@@ -11,4 +11,4 @@ def version_short() -> str:
 
     It returns '1.2' if resnap version is '1.2.6'.
     """
-    return '.'.join(VERSION.split('.')[:2])
+    return ".".join(VERSION.split(".")[:2])

@@ -20,4 +20,5 @@ class SingletonMeta(type):
 
 class SingletonABCMeta(ABCMeta, SingletonMeta):
     "Allows combining the functionalities of both metaclasses without conflict."
+
     pass

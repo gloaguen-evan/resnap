@@ -1,4 +1,3 @@
-
 class ResnapError(Exception):
     def __init__(self, message: str, data: dict) -> None:
         self.message = message

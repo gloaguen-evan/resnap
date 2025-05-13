@@ -32,7 +32,7 @@ class get_s3_connection:
                 s3={"addressing_style": "path" if self._config.force_path_style else "virtual"},
                 request_checksum_calculation="when_required",
                 response_checksum_validation="when_required",
-            )
+            ),
         )
 
     def close(self) -> None:

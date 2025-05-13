@@ -69,7 +69,9 @@ class TestLocalService:
         mock_path_rglob.assert_called_once()
         assert mock_file.unlink.call_count == int(is_deleted)
 
-    def test_clear_old_saves_should_delete_empty_folder(self, mock_path_rglob: MagicMock) -> None:
+    def test_clear_old_saves_should_delete_empty_folder(
+        self, mock_path_rglob: MagicMock
+    ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         mock_file = get_mock_path_file("toto", False)
@@ -83,7 +85,9 @@ class TestLocalService:
         assert mock_file.unlink.call_count == 0
         mock_file.rmdir.assert_called_once()
 
-    def test_clear_old_saves_should_not_delete_unempty_folder(self, mock_path_rglob: MagicMock) -> None:
+    def test_clear_old_saves_should_not_delete_unempty_folder(
+        self, mock_path_rglob: MagicMock
+    ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         mock_file = get_mock_path_file("toto", False)
@@ -106,10 +110,13 @@ class TestLocalService:
             result_path="test_2021-01-01T00:00:00.resnap.pkl",
             result_type="str",
             hashed_arguments=self.hashed_arguments,
+            extra_metadata={},
         )
 
         # When
-        result = service._read_metadata("tests/data/metadata/test-metadata_2021-01-01T00:00:00.resnap")
+        result = service._read_metadata(
+            "tests/data/metadata/test-metadata_2021-01-01T00:00:00.resnap"
+        )
 
         # Then
         assert isinstance(result, Metadata)
@@ -137,6 +144,7 @@ class TestLocalService:
                 result_path="test_2024-01-01T00:00:00.resnap.pkl",
                 result_type="str",
                 hashed_arguments=hash_arguments({}),
+                extra_metadata={},
             ),
             MetadataSuccess(
                 status=Status.SUCCESS,
@@ -144,10 +152,13 @@ class TestLocalService:
                 result_path="test_2021-01-01T00:00:00.resnap.pkl",
                 result_type="str",
                 hashed_arguments=self.hashed_arguments,
+                extra_metadata={},
             ),
         ]
 
-    def test_should_return_none_if_not_metadata(self, mock_path_rglob: MagicMock) -> None:
+    def test_should_return_none_if_not_metadata(
+        self, mock_path_rglob: MagicMock
+    ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         mock_path_rglob.return_value = []
@@ -160,7 +171,9 @@ class TestLocalService:
 
     @patch("json.dump")
     @patch("builtins.open")
-    def test_should_write_metadata(self, mock_open: MagicMock, mock_json_dump: MagicMock) -> None:
+    def test_should_write_metadata(
+        self, mock_open: MagicMock, mock_json_dump: MagicMock
+    ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         metadata = MetadataSuccess(
@@ -176,7 +189,9 @@ class TestLocalService:
 
         # Then
         mock_open.assert_called_once()
-        mock_json_dump.assert_called_once_with(metadata.to_dict(), mock_open.return_value.__enter__(), indent=4)
+        mock_json_dump.assert_called_once_with(
+            metadata.to_dict(), mock_open.return_value.__enter__(), indent=4
+        )
 
     @patch("pandas.DataFrame.to_parquet")
     def test_should_save_dataframe_to_parquet(self, mock_to_parquet: MagicMock) -> None:
@@ -189,11 +204,13 @@ class TestLocalService:
         service._save_dataframe_to_parquet(result, result_path)
 
         # Then
-        mock_to_parquet.assert_called_once_with(result_path, compression='gzip')
+        mock_to_parquet.assert_called_once_with(result_path, compression="gzip")
 
     @patch("pickle.dump")
     @patch("builtins.open")
-    def test_should_save_to_pickle(self, mock_open: MagicMock, mock_pickle_dump: MagicMock) -> None:
+    def test_should_save_to_pickle(
+        self, mock_open: MagicMock, mock_pickle_dump: MagicMock
+    ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         result = {"key": "value"}
@@ -203,11 +220,15 @@ class TestLocalService:
         service._save_to_pickle(result, result_path)
 
         # Then
-        mock_open.assert_called_once_with(result_path, 'wb')
-        mock_pickle_dump.assert_called_once_with(result, mock_open.return_value.__enter__())
+        mock_open.assert_called_once_with(result_path, "wb")
+        mock_pickle_dump.assert_called_once_with(
+            result, mock_open.return_value.__enter__()
+        )
 
     @patch("pandas.read_parquet")
-    def test_should_read_parquet_to_dataframe(self, mock_read_parquet: MagicMock) -> None:
+    def test_should_read_parquet_to_dataframe(
+        self, mock_read_parquet: MagicMock
+    ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         file_path = "test.parquet"
@@ -223,7 +244,9 @@ class TestLocalService:
 
     @patch("pickle.load")
     @patch("builtins.open")
-    def test_should_read_pickle(self, mock_open: MagicMock, mock_pickle_load: MagicMock) -> None:
+    def test_should_read_pickle(
+        self, mock_open: MagicMock, mock_pickle_load: MagicMock
+    ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         file_path = "test.pkl"
@@ -234,13 +257,15 @@ class TestLocalService:
         result = service._read_pickle(file_path)
 
         # Then
-        mock_open.assert_called_once_with(file_path, 'rb')
+        mock_open.assert_called_once_with(file_path, "rb")
         mock_pickle_load.assert_called_once_with(mock_open.return_value.__enter__())
         assert result == expected_data
 
     @patch("json.load")
     @patch("builtins.open")
-    def test_should_read_json(self, mock_open: MagicMock, mock_json_load: MagicMock) -> None:
+    def test_should_read_json(
+        self, mock_open: MagicMock, mock_json_load: MagicMock
+    ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         file_path = "test.json"
@@ -251,7 +276,7 @@ class TestLocalService:
         result = service._read_json(file_path)
 
         # Then
-        mock_open.assert_called_once_with(file_path, 'r')
+        mock_open.assert_called_once_with(file_path, "r")
         mock_json_load.assert_called_once_with(mock_open.return_value.__enter__())
         assert result == expected_data
 
@@ -267,7 +292,7 @@ class TestLocalService:
         result = service._read_text(file_path)
 
         # Then
-        mock_open.assert_called_once_with(file_path, 'r')
+        mock_open.assert_called_once_with(file_path, "r")
         assert result == expected_data
 
     @patch("pandas.DataFrame.to_csv")
@@ -309,12 +334,14 @@ class TestLocalService:
         service._save_to_text(result, result_path)
 
         # Then
-        mock_open.assert_called_once_with(result_path, 'w')
+        mock_open.assert_called_once_with(result_path, "w")
         mock_open.return_value.__enter__().write.assert_called_once_with(result)
 
     @patch("json.dump")
     @patch("builtins.open")
-    def test_should_save_to_json(self, mock_open: MagicMock, mock_json_dump: MagicMock) -> None:
+    def test_should_save_to_json(
+        self, mock_open: MagicMock, mock_json_dump: MagicMock
+    ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         result = {"key": "value"}
@@ -324,8 +351,10 @@ class TestLocalService:
         service._save_to_json(result, result_path)
 
         # Then
-        mock_open.assert_called_once_with(result_path, 'w')
-        mock_json_dump.assert_called_once_with(result, mock_open.return_value.__enter__(), indent=4)
+        mock_open.assert_called_once_with(result_path, "w")
+        mock_json_dump.assert_called_once_with(
+            result, mock_open.return_value.__enter__(), indent=4
+        )
 
     @pytest.mark.parametrize(
         "path, folder_name",
@@ -334,7 +363,9 @@ class TestLocalService:
             ("", "folder"),
         ],
     )
-    def test_should_create_folder(self, path: str, folder_name: str, mock_path_mkdir: MagicMock) -> None:
+    def test_should_create_folder(
+        self, path: str, folder_name: str, mock_path_mkdir: MagicMock
+    ) -> None:
         # Given
         service = LocalResnapService(ConfigBuilder.a_config().build())
 

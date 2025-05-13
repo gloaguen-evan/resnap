@@ -325,6 +325,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
         event_time: datetime,
         result_path: str,
         result_type: str,
+        extra_metadata: dict,
     ) -> None:
         """
         Save success metadata based on the function name, arguments, event time, and result path.
@@ -335,6 +336,8 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
             hashed_arguments (str): The hashed arguments.
             event_time (datetime): The event time.
             result_path (str): The result path.
+            result_type (str): The result type.
+            extra_metadata (dict): The extra metadata.
         """
         metadata = MetadataSuccess(
             status=Status.SUCCESS,
@@ -342,6 +345,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
             hashed_arguments=hashed_arguments,
             result_path=result_path,
             result_type=result_type,
+            extra_metadata=extra_metadata,
         )
         self._save_metadata(func_name, metadata, output_folder)
 
@@ -353,6 +357,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
         event_time: datetime,
         error_message: str,
         data: dict,
+        extra_metadata: dict,
     ) -> None:
         """
         Save failed metadata based on the function name, arguments, event time, error message, and data.
@@ -371,5 +376,6 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
             hashed_arguments=hashed_arguments,
             error_message=error_message,
             data=data,
+            extra_metadata=extra_metadata,
         )
         self._save_metadata(func_name, metadata, output_folder)
