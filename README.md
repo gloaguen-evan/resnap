@@ -10,6 +10,9 @@
 </p>
 
 ---
+![Lint](https://github.com/gloaguen-evan/resnap/actions/workflows/ci.yml/badge.svg?branch=main&event=push&label=Lint)
+![Tests](https://github.com/gloaguen-evan/resnap/actions/workflows/ci.yml/badge.svg?branch=main&event=push&label=Tests)
+
 
 ## 🚀 Features
 

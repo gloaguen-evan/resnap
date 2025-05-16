@@ -1,5 +1,5 @@
 import io
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, call, patch
 
 import pandas as pd
 import pytest
@@ -102,7 +102,7 @@ class TestS3Client:
             ),
         ],
     )
-    def test_should__download_file(
+    def test_should_download_file(
         self,
         local_path_or_fileobj: str | io.FileIO | io.BytesIO,
         mock_connection: MagicMock,
@@ -127,10 +127,10 @@ class TestS3Client:
         )
 
     @pytest.mark.parametrize("recursive", [True, False])
-    @patch("resnap.boto.client.sort_folders_and_files")
+    @patch("resnap.boto.client.get_folders_and_files")
     def test_should_list_objects(
         self,
-        mock_sort_folders_and_files: MagicMock,
+        mock_get_folders_and_files: MagicMock,
         recursive: bool,
         mock_s3_client: S3Client,
         mock_connection: MagicMock,
@@ -139,7 +139,7 @@ class TestS3Client:
         mock_connection.return_value.__enter__.return_value.get_paginator.return_value.paginate.return_value = [
             {"Contents": [{"Key": "file1.txt"}, {"Key": "file2.txt"}]}
         ]
-        mock_sort_folders_and_files.return_value = ["file1.txt", "file2.txt"]
+        mock_get_folders_and_files.return_value = ([], ["file1.txt", "file2.txt"])
         expected_paginate_call = {
             "Bucket": mock_s3_client.config.bucket_name,
             "Prefix": "test/",
@@ -158,7 +158,7 @@ class TestS3Client:
         mock_connection.return_value.__enter__.return_value.get_paginator.return_value.paginate.assert_called_once_with(
             **expected_paginate_call,
         )
-        mock_sort_folders_and_files.assert_called_once_with(
+        mock_get_folders_and_files.assert_called_once_with(
             "test/*", [{"Contents": [{"Key": "file1.txt"}, {"Key": "file2.txt"}]}]
         )
 
@@ -320,3 +320,19 @@ class TestS3Client:
                 df, compression=expected_compression
             )
             mock_upload_file.assert_called_once_with(expected_write_df_return, "test.csv")
+
+    def test_should_rmdir(self, mock_s3_client: S3Client, mock_connection: MagicMock) -> None:
+        # Given
+        mock_s3_client.list_folders_and_files = MagicMock(return_value=(["folder1/", "folder2/"], ["file1.txt"]))
+        mock_s3_client.delete_objects = MagicMock()
+
+        # When
+        mock_s3_client.rmdir("test/")
+
+        # Then
+        assert mock_s3_client.delete_objects.call_count == 2
+        calls = [
+            call(["file1.txt"]),
+            call(["folder1/", "folder2/"]),
+        ]
+        mock_s3_client.delete_objects.assert_has_calls(calls)

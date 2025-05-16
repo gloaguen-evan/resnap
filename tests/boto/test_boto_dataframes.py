@@ -195,10 +195,10 @@ class TestParquetHandler:
         # Given
         buffer = io.BytesIO()
         mock_dataframe.to_parquet(buffer, engine="pyarrow")
-        parquet_bytes = buffer.getvalue()
+        buffer.seek(0)
 
         # When
-        result_df = ParquetHandler.read_df(parquet_bytes)
+        result_df = ParquetHandler.read_df(buffer)
 
         # Then
         pd.testing.assert_frame_equal(result_df, mock_dataframe)

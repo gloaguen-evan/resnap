@@ -56,6 +56,7 @@ class TestS3Connection:
             aws_secret_access_key=mock_s3_config.secret_key,
             region_name=mock_s3_config.region_name,
             endpoint_url=mock_s3_config.endpoint_url,
+            verify=False,
             config=ANY,
         )
         assert config_equal(expected_config, mock_boto_client.call_args.kwargs['config'])

@@ -73,6 +73,23 @@ def test_should_get_config_data(
     assert config == expected
 
 
+def test_should_not_call_get_config_file_path_if_file_path_is_provided(
+    mock_get_config_file_path: MagicMock, mock_toml_load: MagicMock,
+) -> None:
+    # Given
+    file_path = "tests/pyproject.toml"
+    mock_toml_load.return_value = {"tool": {"resnap": {"enabled": True, "output_base_path": "resnap"}}}
+    expected = Config(enabled=True, output_base_path="resnap")
+
+    # When
+    config = get_config_data(file_path)
+
+    # Then
+    assert isinstance(config, Config)
+    assert config == expected
+    mock_get_config_file_path.assert_not_called()
+
+
 @pytest.mark.parametrize("file_path", ["", "test.txt"])
 def test_should_return_default_config_data_with_warning(file_path: str, mock_get_config_file_path: MagicMock) -> None:
     # Given

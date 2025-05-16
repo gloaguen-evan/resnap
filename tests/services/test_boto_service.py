@@ -185,7 +185,7 @@ class TestBotoService:
             hashed_arguments=hash_arguments({"test": "toto"}),
             extra_metadata={},
         )
-        mock_s3_client_download_file.side_effect = lambda path, buffer: buffer.write(
+        mock_s3_client_download_file.side_effect = lambda buffer, path: buffer.write(
             json.dumps(expected_metadata.to_dict()).encode()
         )
 
@@ -369,28 +369,28 @@ class TestBotoService:
         service = BotoResnapService(ConfigBuilder.a_config().build())
         file_path = "test.pkl"
         expected_data = {"key": "value"}
-        mock_s3_client_download_file.side_effect = lambda path, buffer: buffer.write(pickle.dumps(expected_data))
+        mock_s3_client_download_file.side_effect = lambda buffer, path: buffer.write(pickle.dumps(expected_data))
 
         # When
         result = service._read_pickle(file_path)
 
         # Then
         assert result == expected_data
-        mock_s3_client_download_file.assert_called_once_with(str(file_path), ANY)
+        mock_s3_client_download_file.assert_called_once_with(ANY, str(file_path))
 
     def test_should_read_text(self, mock_s3_client_download_file: MagicMock) -> None:
         # Given
         service = BotoResnapService(ConfigBuilder.a_config().build())
         file_path = "test.txt"
         expected_data = "toto"
-        mock_s3_client_download_file.side_effect = lambda path, buffer: buffer.write(expected_data.encode())
+        mock_s3_client_download_file.side_effect = lambda buffer, path: buffer.write(expected_data.encode())
 
         # When
         result = service._read_text(file_path)
 
         # Then
         assert result == expected_data
-        mock_s3_client_download_file.assert_called_once_with(str(file_path), ANY)
+        mock_s3_client_download_file.assert_called_once_with(ANY, str(file_path))
 
     def test_should_read_json(self, mock_s3_client_download_file: MagicMock) -> None:
         # Given
@@ -398,7 +398,7 @@ class TestBotoService:
         file_path = "test.json"
         expected_data = {"key": "value"}
         mock_s3_client_download_file.side_effect = (
-            lambda path, buffer: buffer.write(json.dumps(expected_data, indent=4).encode())
+            lambda buffer, path: buffer.write(json.dumps(expected_data, indent=4).encode())
         )
 
         # When
@@ -406,7 +406,7 @@ class TestBotoService:
 
         # Then
         assert result == expected_data
-        mock_s3_client_download_file.assert_called_once_with(str(file_path), ANY)
+        mock_s3_client_download_file.assert_called_once_with(ANY, str(file_path))
 
     @pytest.mark.parametrize(
         "path, is_exists_path, folder_name, is_exists_folder, exist_count, mkdir_count",

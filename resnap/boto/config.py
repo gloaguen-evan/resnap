@@ -9,3 +9,4 @@ class S3Config(BaseModel):
     endpoint_url: str | None = None
     force_path_style: bool = True
     signature_version: str = "s3v4"
+    cert_file_path: str | None = None

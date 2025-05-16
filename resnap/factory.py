@@ -36,7 +36,6 @@ class ResnapServiceFactory:
             _service = LocalResnapService(_resnap_config)
         elif _resnap_config.save_to == Services.S3:
             from .services.boto_service import BotoResnapService
-
             _service = BotoResnapService(_resnap_config)
         else:
             raise NotImplementedError(f"Resnap service {_resnap_config.save_to} is not implemented")

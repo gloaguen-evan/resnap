@@ -60,7 +60,7 @@ class BotoResnapService(ResnapService):
         to_delete = []
         for folder in folders:
             contents = self._client.list_objects(folder)
-            if not contents:
+            if not contents or (len(contents) == 1 and contents[0] == folder):
                 to_delete.append(folder)
         if to_delete:
             self._client.delete_objects(to_delete)
@@ -99,7 +99,7 @@ class BotoResnapService(ResnapService):
 
     def _get_buffer_for_read_file(self, file_path: str) -> io.BytesIO:
         buffer = io.BytesIO()
-        self._client.download_file(file_path, buffer)
+        self._client.download_file(buffer, file_path)
         buffer.seek(0)
         return buffer
 

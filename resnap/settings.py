@@ -12,8 +12,9 @@ CONFIG_SECTIONS: dict[str, str] = {
 logger = logging.getLogger("resnap")
 
 
-def get_config_data() -> Config:
-    file_path = get_config_file_path()
+def get_config_data(file_path: str | None = None) -> Config:
+    if not file_path:
+        file_path = get_config_file_path()
     if file_path.endswith(".toml"):
         config = toml.load(file_path)
         tools = config.get("tool", {})

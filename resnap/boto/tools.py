@@ -32,13 +32,13 @@ def format_remote_path_folder_to_search(path: str) -> str:
     return path
 
 
-def sort_folders_and_files(remote_dir_path: str, page_iterator: PageIterator) -> list[str]:
-    """Sort the folders and files from the given page iterator.
+def get_folders_and_files(remote_dir_path: str, page_iterator: PageIterator) -> tuple[list[str], list[str]]:
+    """Get the folders and files from the given page iterator.
     Args:
         remote_dir_path (str): The remote directory path.
         page_iterator (PageIterator): The page iterator.
     Returns:
-        List[str]: The sorted list of folders and files.
+        tuple[list[str], list[str]]: A tuple containing the list of folders and files.
     """
     wildcard = remote_dir_path[remote_dir_path.index("*") :]
     files: list[str] = []
@@ -66,7 +66,7 @@ def sort_folders_and_files(remote_dir_path: str, page_iterator: PageIterator) ->
 
     folders.extend(_fill_folders_from_filepaths(files, remote_dir_path))
 
-    return sorted(list(set(folders)) + list(set(files)))
+    return sorted(set(folders)), sorted(set(files))
 
 
 def _filter_files_according_to_wildcard(wildcard: str, filepaths: list[str]) -> list[str]:

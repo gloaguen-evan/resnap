@@ -27,6 +27,7 @@ class get_s3_connection:
             aws_secret_access_key=self._config.secret_key,
             region_name=self._config.region_name,
             endpoint_url=self._config.endpoint_url,
+            verify=False if not self._config.cert_file_path else self._config.cert_file_path,
             config=Config(
                 signature_version=self._config.signature_version,
                 s3={"addressing_style": "path" if self._config.force_path_style else "virtual"},

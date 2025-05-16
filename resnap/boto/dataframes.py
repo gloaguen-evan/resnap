@@ -109,7 +109,7 @@ class ParquetHandler(DataFrameHandler):
     @staticmethod
     def read_df(bytes_object: BufferType, **kwargs) -> pd.DataFrame:
         kwargs.pop("engine", None)
-        reader = pa.BufferReader(bytes_object)
+        reader = pa.BufferReader(bytes_object.read())
         return pd.read_parquet(reader, engine="pyarrow", **kwargs)
 
     @staticmethod

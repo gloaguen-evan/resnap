@@ -5,7 +5,7 @@ import pandas as pd
 from .config import S3Config
 from .connection import get_s3_connection
 from .dataframes import get_dataframe_handler
-from .tools import SEPARATOR, format_remote_path_folder_to_search, remove_separator_at_begin, sort_folders_and_files
+from .tools import SEPARATOR, format_remote_path_folder_to_search, get_folders_and_files, remove_separator_at_begin
 
 _UNDEFINED_VALUE = object()
 
@@ -63,6 +63,17 @@ class S3Client:
         Returns:
             List[str]: A list of object keys in the specified directory.
         """
+        folders, files = self.list_folders_and_files(remote_dir_path, recursive)
+        return sorted(folders + files)
+
+    def list_folders_and_files(self, remote_dir_path: str = "", recursive: bool = False) -> tuple[list[str], list[str]]:
+        """List folders and files in a directory in S3.
+        Args:
+            remote_dir_path (str): The S3 path to the directory.
+            recursive (bool): Whether to list objects recursively.
+        Returns:
+            tuple[list[str], list[str]]: A tuple containing two lists: folders and files.
+        """
         remote_dir_path = format_remote_path_folder_to_search(remote_dir_path)
         prefix = remote_dir_path[: remote_dir_path.index("*")]
         operation_parameters = {
@@ -75,7 +86,8 @@ class S3Client:
         with get_s3_connection(self.config) as connection:
             paginator = connection.get_paginator("list_objects_v2")
             page_iterator = paginator.paginate(**operation_parameters)
-            return sort_folders_and_files(remote_dir_path, page_iterator)
+            folders, files = get_folders_and_files(remote_dir_path, page_iterator)
+            return folders, files
 
     def delete_object(self, key: str) -> None:
         """Delete an object from S3.
@@ -115,6 +127,17 @@ class S3Client:
         if not path.endswith(SEPARATOR):
             path += SEPARATOR
         self.upload_file(io.BytesIO(), path)
+
+    def rmdir(self, path: str) -> None:
+        """Remove a directory in S3. In S3, directories are represented by keys that end with a '/'.
+
+        Args:
+            path (str): The path to remove.
+        """
+        path = format_remote_path_folder_to_search(path)
+        folders, files = self.list_folders_and_files(path, recursive=True)
+        self.delete_objects(files)
+        self.delete_objects(folders)
 
     def get_df_from_file(self, remote_path: str, file_format: str = "csv", **kwargs) -> pd.DataFrame | None:
         """Read a file from S3 and return it as a DataFrame.

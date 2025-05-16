@@ -5,7 +5,7 @@ WORKDIR /app
 
 COPY . /app
 
-RUN uv pip install --system -e .
+RUN uv pip install --system --group boto -e .
 RUN uv pip install --system dependency-injector>=4.46.0
 
 WORKDIR /app/tests/functionals
