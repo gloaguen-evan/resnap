@@ -67,7 +67,8 @@ def get_datetime_from_filename(filename: Path | str) -> datetime:
         datetime: The datetime from the given filename.
     """
     filename_without_ext: str = str(filename).split(EXT)[0]
-    return datetime.fromisoformat(filename_without_ext.split("_")[-1])
+    extract_day, extract_time = filename_without_ext.split("_")[-1].split("T")
+    return datetime.fromisoformat(f"{extract_day}T{extract_time.replace("-", ":")}")
 
 
 def hash_arguments(args: dict[str, Any]) -> str:

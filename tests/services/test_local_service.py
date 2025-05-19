@@ -44,10 +44,10 @@ class TestLocalService:
         "file_path, is_file, is_deleted",
         [
             ("toto", False, False),
-            ("test_2021-01-01T00:00:00.resnap", True, True),
-            ("test_2021-01-01T00:00:00.resnap.pkl", True, True),
-            ("toto/toto_2021-01-01T00:00:00.csv", True, False),
-            (f"test_{datetime.now().isoformat()}.resnap", True, False),
+            ("test_2021-01-01T00-00-00.resnap", True, True),
+            ("test_2021-01-01T00-00-00.resnap.pkl", True, True),
+            ("toto/toto_2021-01-01T00-00-00.csv", True, False),
+            (f"test_{datetime.now().isoformat().replace(":", "-")}.resnap", True, False),
         ],
     )
     def test_should_clear_old_saves(
@@ -107,7 +107,7 @@ class TestLocalService:
         expected_metadata = MetadataSuccess(
             status=Status.SUCCESS,
             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-            result_path="test_2021-01-01T00:00:00.resnap.pkl",
+            result_path="test_2021-01-01T00-00-00.resnap.pkl",
             result_type="str",
             hashed_arguments=self.hashed_arguments,
             extra_metadata={},
@@ -115,7 +115,7 @@ class TestLocalService:
 
         # When
         result = service._read_metadata(
-            "tests/data/metadata/test-metadata_2021-01-01T00:00:00.resnap"
+            "tests/data/metadata/test-metadata_2021-01-01T00-00-00.resnap"
         )
 
         # Then
@@ -126,10 +126,10 @@ class TestLocalService:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         mock_path_rglob.return_value = [
-            Path("tests/data/metadata/test-metadata_2021-01-01T00:00:00.resnap"),
-            Path("tests/data/metadata/test-metadata_2024-01-01T00:00:00.resnap"),
+            Path("tests/data/metadata/test-metadata_2021-01-01T00-00-00.resnap"),
+            Path("tests/data/metadata/test-metadata_2024-01-01T00-00-00.resnap"),
             get_mock_path_file("toto", False),
-            get_mock_path_file("toto_2021-01-02T00:00:00.resnap", True),
+            get_mock_path_file("toto_2021-01-02T00-00-00.resnap", True),
             get_mock_path_file("test.csv", True),
         ]
 
@@ -141,7 +141,7 @@ class TestLocalService:
             MetadataSuccess(
                 status=Status.SUCCESS,
                 event_time=datetime.fromisoformat("2024-01-01T00:00:00"),
-                result_path="test_2024-01-01T00:00:00.resnap.pkl",
+                result_path="test_2024-01-01T00-00-00.resnap.pkl",
                 result_type="str",
                 hashed_arguments=hash_arguments({}),
                 extra_metadata={},
@@ -149,7 +149,7 @@ class TestLocalService:
             MetadataSuccess(
                 status=Status.SUCCESS,
                 event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-                result_path="test_2021-01-01T00:00:00.resnap.pkl",
+                result_path="test_2021-01-01T00-00-00.resnap.pkl",
                 result_type="str",
                 hashed_arguments=self.hashed_arguments,
                 extra_metadata={},
@@ -179,13 +179,13 @@ class TestLocalService:
         metadata = MetadataSuccess(
             status=Status.SUCCESS,
             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-            result_path="test_2021-01-01T00:00:00.resnap.pkl",
+            result_path="test_2021-01-01T00-00-00.resnap.pkl",
             result_type="str",
             hashed_arguments=self.hashed_arguments,
         )
 
         # When
-        service._write_metadata("test_2021-01-01T00:00:00.resnap", metadata)
+        service._write_metadata("test_2021-01-01T00-00-00.resnap", metadata)
 
         # Then
         mock_open.assert_called_once()

@@ -100,10 +100,10 @@ class TestBotoService:
     @pytest.mark.parametrize(
         "file_path, is_deleted",
         [
-            ("test_2021-01-01T00:00:00.resnap", True),
-            ("test_2021-01-01T00:00:00.resnap.pkl", True),
-            ("toto/toto_2021-01-01T00:00:00.csv", False),
-            (f"test_{datetime.now().isoformat()}.resnap", False),
+            ("test_2021-01-01T00-00-00.resnap", True),
+            ("test_2021-01-01T00-00-00.resnap.pkl", True),
+            ("toto/toto_2021-01-01T00-00-00.csv", False),
+            (f"test_{datetime.now().isoformat().replace(":", "-")}.resnap", False),
         ],
     )
     def test_should_clear_old_saves_files(
@@ -180,7 +180,7 @@ class TestBotoService:
         expected_metadata = MetadataSuccess(
             status=Status.SUCCESS,
             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-            result_path="test_2021-01-01T00:00:00.resnap.pkl",
+            result_path="test_2021-01-01T00-00-00.resnap.pkl",
             result_type="str",
             hashed_arguments=hash_arguments({"test": "toto"}),
             extra_metadata={},
@@ -190,7 +190,7 @@ class TestBotoService:
         )
 
         # When
-        result = service._read_metadata("tests/data/metadata/test-metadata_2021-01-01T00:00:00.resnap")
+        result = service._read_metadata("tests/data/metadata/test-metadata_2021-01-01T00-00-00.resnap")
 
         # Then
         assert isinstance(result, Metadata)
@@ -204,24 +204,24 @@ class TestBotoService:
         # Given
         service = BotoResnapService(ConfigBuilder.a_config().build())
         mock_s3_client_list_objects.return_value = [
-            "test-metadata_2021-01-01T00:00:00.resnap",
-            "test-metadata_2024-01-01T00:00:00.resnap",
+            "test-metadata_2021-01-01T00-00-00.resnap",
+            "test-metadata_2024-01-01T00-00-00.resnap",
             "toto",
-            "toto_2021-01-02T00:00:00.resnap",
+            "toto_2021-01-02T00-00-00.resnap",
             "test.csv",
         ]
         expected_metadatas = [
             MetadataSuccess(
                 status=Status.SUCCESS,
                 event_time=datetime.fromisoformat("2024-01-01T00:00:00"),
-                result_path="test_2024-01-01T00:00:00.resnap.pkl",
+                result_path="test_2024-01-01T00-00-00.resnap.pkl",
                 result_type="str",
                 hashed_arguments=hash_arguments({}),
             ),
             MetadataSuccess(
                 status=Status.SUCCESS,
                 event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-                result_path="test_2021-01-01T00:00:00.resnap.pkl",
+                result_path="test_2021-01-01T00-00-00.resnap.pkl",
                 result_type="str",
                 hashed_arguments=hash_arguments({}),
             ),
@@ -252,7 +252,7 @@ class TestBotoService:
         metadata = MetadataSuccess(
             status=Status.SUCCESS,
             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-            result_path="test_2021-01-01T00:00:00.resnap.pkl",
+            result_path="test_2021-01-01T00-00-00.resnap.pkl",
             result_type="str",
             hashed_arguments=hash_arguments({"test": "toto"}),
         )
@@ -261,12 +261,12 @@ class TestBotoService:
         )
 
         # When
-        service._write_metadata("test_2021-01-01T00:00:00.resnap", metadata)
+        service._write_metadata("test_2021-01-01T00-00-00.resnap", metadata)
 
         # Then
         mock_s3_client_upload_file.assert_called_once()
         args, _ = mock_s3_client_upload_file.call_args
-        assert args[1] == "test_2021-01-01T00:00:00.resnap"
+        assert args[1] == "test_2021-01-01T00-00-00.resnap"
 
     def test_should_save_dataframe_to_parquet(self, mock_s3_client_push_df_to_file: MagicMock) -> None:
         # Given

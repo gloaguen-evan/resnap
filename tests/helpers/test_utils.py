@@ -37,15 +37,15 @@ def test_calculate_datetime_from_now(value: int, unit: TimeUnit, expected: datet
     "filename, expected",
     [
         (
-            "toto_2021-01-01T00:00:00.resnap",
+            "toto_2021-01-01T00-00-00.resnap",
             datetime.fromisoformat("2021-01-01T00:00:00"),
         ),
         (
-            Path("toto_2021-01-01T00:00:00.resnap"),
+            Path("toto_2021-01-01T00-00-00.resnap"),
             datetime.fromisoformat("2021-01-01T00:00:00"),
         ),
         (
-            Path("toto/toto_2021-01-01T00:00:00.resnap"),
+            Path("toto/toto_2021-01-01T00-00-00.resnap"),
             datetime.fromisoformat("2021-01-01T00:00:00"),
         ),
     ],
