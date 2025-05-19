@@ -16,21 +16,25 @@ from resnap.helpers.utils import (
 
 
 @pytest.mark.parametrize(
-    "value, unit, expected",
+    "value, unit, delta",
     [
-        (10, TimeUnit.SECOND, datetime.now() - timedelta(seconds=10)),
-        (10, TimeUnit.MINUTE, datetime.now() - timedelta(minutes=10)),
-        (10, TimeUnit.HOUR, datetime.now() - timedelta(hours=10)),
-        (10, TimeUnit.DAY, datetime.now() - timedelta(days=10)),
-        (10, TimeUnit.WEEK, datetime.now() - timedelta(weeks=10)),
+        (10, TimeUnit.SECOND, timedelta(seconds=10)),
+        (10, TimeUnit.MINUTE, timedelta(minutes=10)),
+        (10, TimeUnit.HOUR, timedelta(hours=10)),
+        (10, TimeUnit.DAY, timedelta(days=10)),
+        (10, TimeUnit.WEEK, timedelta(weeks=10)),
     ],
 )
-def test_calculate_datetime_from_now(value: int, unit: TimeUnit, expected: datetime) -> None:
+def test_calculate_datetime_from_now(value: int, unit: TimeUnit, delta: datetime) -> None:
+    # Given
+    now = datetime.now()
+
     # When
     result = calculate_datetime_from_now(value, unit)
 
     # Then
-    assert abs((result - expected).total_seconds()) < 1.5
+    expected = now - delta
+    assert abs((result - expected).total_seconds()) < 1
 
 
 @pytest.mark.parametrize(
