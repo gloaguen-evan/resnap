@@ -1,5 +1,3 @@
-import os
-
 from botocore.paginate import PageIterator
 
 SEPARATOR = "/"
@@ -114,7 +112,6 @@ def _split_and_format_wildcard(wildcard: str) -> tuple[str, str]:
         Tuple[str, str]: File extension and directory if exists.
     """
     formatted_wildcard: list = wildcard.replace("*", "").split(SEPARATOR)
-    print(f"formatted_wildcard: {formatted_wildcard}")
     file_ext: str = formatted_wildcard[-1]
     directory: str = ""
 
@@ -150,7 +147,8 @@ def _fill_folders_from_filepaths(files: list[str], remote_path: str) -> list[str
         parent_directory = _splitted_path[: len(_splitted_path) - 1]
         if not parent_directory:
             continue
-        _subdir_to_create: str = f"{os.path.join(*parent_directory)}{SEPARATOR}"
+        _all_subdir = f"{SEPARATOR}".join(parent_directory)
+        _subdir_to_create: str = f"{_all_subdir}{SEPARATOR}"
         _equals_remote_path: bool = _subdir_to_create in prefix
         _is_already_registered: bool = _subdir_to_create in folders
 

@@ -112,7 +112,7 @@ def load_file(file_path: str, key: str | None = None) -> dict | ConfigParser | S
     try:
         return file_dict[key] if key else file_dict
     except KeyError:
-        raise KeyError(f"key '{key}' not found in '{file_path}'")
+        raise KeyError(f"Key {key} not found in {file_path}")
 
 
 def _load_yaml_file(file_path: str) -> dict:

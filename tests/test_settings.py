@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -119,4 +120,4 @@ def test_should_get_config_file_path(listdir_result: list[str], expected: str, m
     config_file_path = get_config_file_path()
 
     # Then
-    assert config_file_path == expected
+    assert Path(config_file_path) == Path(expected)

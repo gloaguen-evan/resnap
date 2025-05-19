@@ -159,7 +159,6 @@ class TestCSVHandler:
         assert isinstance(buffer, io.BytesIO)
         buffer.seek(0)
         result_df = pd.read_csv(buffer)
-        print(result_df)
         pd.testing.assert_frame_equal(result_df, mock_dataframe)
 
     def test_should_write_df_gzip_compression(
@@ -174,7 +173,6 @@ class TestCSVHandler:
         with gzip.GzipFile(fileobj=buffer, mode="rb") as f:
             decompressed = f.read()
         result_df = pd.read_csv(io.BytesIO(decompressed))
-        print(result_df)
         pd.testing.assert_frame_equal(result_df, mock_dataframe)
 
     def test_should_raise_valueerror_when_write_df_with_invalid_compression(

@@ -129,6 +129,9 @@ def test_should_raise_key_error_when_key_is_not_found() -> None:
     # Given
     file_path = Path(__file__).parent.parent / "data" / "config" / "test-secrets.cfg"
 
-    # When / Then
-    with pytest.raises(KeyError, match=f"key \'non_existent\' not found in \'{file_path}\'"):
+    # When
+    with pytest.raises(KeyError) as e:
         load_file(str(file_path), key="non_existent")
+
+    # Then
+    assert "Key non_existent not found" in str(e.value)
