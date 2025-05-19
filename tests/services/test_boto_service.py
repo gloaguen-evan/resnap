@@ -103,7 +103,7 @@ class TestBotoService:
             ("test_2021-01-01T00-00-00.resnap", True),
             ("test_2021-01-01T00-00-00.resnap.pkl", True),
             ("toto/toto_2021-01-01T00-00-00.csv", False),
-            (f"test_{datetime.now().isoformat().replace(":", "-")}.resnap", False),
+            (f"test_{datetime.now().isoformat().replace(':', '-')}.resnap", False),
         ],
     )
     def test_should_clear_old_saves_files(

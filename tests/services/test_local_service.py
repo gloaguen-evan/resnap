@@ -47,7 +47,7 @@ class TestLocalService:
             ("test_2021-01-01T00-00-00.resnap", True, True),
             ("test_2021-01-01T00-00-00.resnap.pkl", True, True),
             ("toto/toto_2021-01-01T00-00-00.csv", True, False),
-            (f"test_{datetime.now().isoformat().replace(":", "-")}.resnap", True, False),
+            (f"test_{datetime.now().isoformat().replace(':', '-')}.resnap", True, False),
         ],
     )
     def test_should_clear_old_saves(

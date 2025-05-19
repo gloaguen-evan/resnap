@@ -35,7 +35,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
             parts.append(self.config.output_base_path)
         if output_folder:
             parts.append(output_folder)
-        parts.append(f"{func_name}_{event_time.isoformat().replace(":", "-")}{EXT}")
+        parts.append(f"{func_name}_{event_time.isoformat().replace(':', '-')}{EXT}")
         return SEPATOR.join(parts)
 
     def result_path(self, func_name: str, event_time: datetime, output_folder: str, output_ext: str) -> str:
@@ -55,7 +55,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
             parts.append(self.config.output_base_path)
         if output_folder:
             parts.append(output_folder)
-        parts.append(f"{func_name}_{event_time.isoformat().replace(":", "-")}{EXT}.{output_ext}")
+        parts.append(f"{func_name}_{event_time.isoformat().replace(':', '-')}{EXT}.{output_ext}")
         return SEPATOR.join(parts)
 
     @abstractmethod
