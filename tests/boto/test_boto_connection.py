@@ -35,8 +35,9 @@ def mock_boto_client(mocker) -> MagicMock:
 
 
 class TestS3Connection:
-    def test_open_connection(self, mock_boto_client: MagicMock, mock_s3_config: S3Config) -> None:
+    def test_open_connection(self, monkeypatch, mock_boto_client: MagicMock, mock_s3_config: S3Config) -> None:
         # Given
+        monkeypatch.setenv("REQUESTS_CA_BUNDLE", "/custom/path/to/ca.pem")
         expected_config = Config(
             signature_version=mock_s3_config.signature_version,
             s3={"addressing_style": "path"},
@@ -56,7 +57,7 @@ class TestS3Connection:
             aws_secret_access_key=mock_s3_config.secret_key,
             region_name=mock_s3_config.region_name,
             endpoint_url=mock_s3_config.endpoint_url,
-            verify=False,
+            verify="/custom/path/to/ca.pem",
             config=ANY,
         )
         assert config_equal(expected_config, mock_boto_client.call_args.kwargs['config'])

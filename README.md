@@ -40,6 +40,20 @@ If you want to use a S3 solution
 pip install resnap[boto]
 ```
 
+## 🛠️ Configuration
+To use this library, you need to configure it using a pyproject.toml file.
+Add the following section under [tool.resnap]:
+```toml
+[tool.resnap]
+enabled = true                          # Enable or disable the library functionality
+save_to = "local"                       # Choose the storage backend (e.g., 'local')
+output_base_path = "results"            # Directory where output files will be saved
+secrets_file_name = ""                  # Optional: path to a secrets file (leave empty if unused (e.g, 'local'))
+enable_remove_old_files = true          # Automatically delete old files based on retention policy
+max_history_files_length = 3            # Duration value for file retention, used with max_history_files_time_unit
+max_history_files_time_unit = "day"  # Time unit used for history retention (e.g., 'second', 'minute', 'hour', 'day')
+```
+
 ## 🧪 Quick Example
 
 ```python
