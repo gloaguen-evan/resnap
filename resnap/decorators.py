@@ -6,7 +6,7 @@ from typing import Any, ParamSpec, TypeVar
 
 from .exceptions import ResnapError
 from .factory import ResnapServiceFactory
-from .helpers.context import clear_metadata, get_metadata
+from .helpers.context import clear_metadata, get_metadata, restore_metadata
 from .helpers.results_retriver import ResultsRetriver
 from .services.service import ResnapService
 
@@ -37,7 +37,6 @@ def _save(
 
 def _clear(service: ResnapService) -> None:
     logger.debug("Clearing old saves...")
-    clear_metadata()
     service.clear_old_saves()
 
 
@@ -74,6 +73,7 @@ def resnap(_func: Callable[P, R] | None = None, **options: Any) -> Callable[P, R
         if not service.is_enabled:
             return _func(*args, **kwargs)
         _clear(service)
+        token = clear_metadata()
 
         results_retriver = ResultsRetriver(service, options)
         result, is_recovery = results_retriver.get_results(_func, args, kwargs)
@@ -105,6 +105,8 @@ def resnap(_func: Callable[P, R] | None = None, **options: Any) -> Callable[P, R
                 extra_metadata=get_metadata(),
             )
             raise e
+        finally:
+            restore_metadata(token)
 
     return wrapper
 
@@ -141,6 +143,7 @@ def async_resnap(
         if not service.is_enabled:
             return await _func(*args, **kwargs)
         _clear(service)
+        token = clear_metadata()
 
         results_retriver = ResultsRetriver(service, options)
         result, is_recovery = results_retriver.get_results(_func, args, kwargs)
@@ -172,5 +175,7 @@ def async_resnap(
                 extra_metadata=get_metadata(),
             )
             raise e
+        finally:
+            restore_metadata(token)
 
     return wrapper

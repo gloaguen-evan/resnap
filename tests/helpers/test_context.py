@@ -9,6 +9,7 @@ from resnap.helpers.context import (
     add_metadatas,
     clear_metadata,
     get_metadata,
+    restore_metadata,
 )
 
 
@@ -63,6 +64,20 @@ def test_clear_metadata() -> None:
     clear_metadata()
     metadata = get_metadata()
     assert metadata == {}
+
+
+def test_clear_and_restore_metadata():
+    add_metadata("a", 1)
+    assert get_metadata() == {"a": 1}
+
+    token = clear_metadata()
+    assert get_metadata() == {}
+
+    add_metadata("b", 2)
+    assert get_metadata() == {"b": 2}
+
+    restore_metadata(token)
+    assert get_metadata() == {"a": 1}
 
 
 async def set_and_get_metadata_async(key, value) -> dict[str, Any]:

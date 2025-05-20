@@ -1,4 +1,4 @@
-from contextvars import ContextVar
+from contextvars import ContextVar, Token
 from typing import Any
 
 _checkpoint_metadata: ContextVar[dict] = ContextVar("_checkpoint_metadata", default={})
@@ -42,4 +42,14 @@ def clear_metadata() -> None:
     """
     Clear the metadata from the checkpoint context.
     """
-    _checkpoint_metadata.set({})
+    return _checkpoint_metadata.set({})
+
+
+def restore_metadata(token: Token) -> None:
+    """
+    Restore the metadata in the checkpoint context.
+
+    Args:
+        token (Token): The token to restore the metadata.
+    """
+    _checkpoint_metadata.reset(token)
