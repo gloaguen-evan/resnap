@@ -9,7 +9,7 @@ from .utils import hash_arguments
 logger = logging.getLogger("resnap")
 
 
-class ResultsRetriver:
+class ResultsRetriever:
     def __init__(self, service: ResnapService, options: dict[str, Any]) -> None:
         self._service = service
         self._considered_attributes: list[str] = options.get("considered_attributes", [])

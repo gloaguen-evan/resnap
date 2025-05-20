@@ -7,7 +7,7 @@ from typing import Any, ParamSpec, TypeVar
 from .exceptions import ResnapError
 from .factory import ResnapServiceFactory
 from .helpers.context import clear_metadata, get_metadata, restore_metadata
-from .helpers.results_retriver import ResultsRetriver
+from .helpers.results_retriever import ResultsRetriever
 from .services.service import ResnapService
 
 logger = logging.getLogger("resnap")
@@ -75,19 +75,19 @@ def resnap(_func: Callable[P, R] | None = None, **options: Any) -> Callable[P, R
         _clear(service)
         token = clear_metadata()
 
-        results_retriver = ResultsRetriver(service, options)
-        result, is_recovery = results_retriver.get_results(_func, args, kwargs)
+        results_retriever = ResultsRetriever(service, options)
+        result, is_recovery = results_retriever.get_results(_func, args, kwargs)
         if is_recovery:
             return result
 
         try:
-            logger.debug(f"Executing function {results_retriver.func_name}...")
+            logger.debug(f"Executing function {results_retriever.func_name}...")
             result = _func(*args, **kwargs)
             _save(
                 service=service,
-                func_name=results_retriver.func_name,
-                output_folder=results_retriver.output_folder,
-                hashed_arguments=results_retriver.hashed_arguments,
+                func_name=results_retriever.func_name,
+                output_folder=results_retriever.output_folder,
+                hashed_arguments=results_retriever.hashed_arguments,
                 result=result,
                 extra_metadata=get_metadata(),
                 output_format=options.get("output_format"),
@@ -96,9 +96,9 @@ def resnap(_func: Callable[P, R] | None = None, **options: Any) -> Callable[P, R
 
         except Exception as e:
             service.save_failed_metadata(
-                func_name=results_retriver.func_name,
-                output_folder=results_retriver.output_folder,
-                hashed_arguments=results_retriver.hashed_arguments,
+                func_name=results_retriever.func_name,
+                output_folder=results_retriever.output_folder,
+                hashed_arguments=results_retriever.hashed_arguments,
                 event_time=datetime.now(),
                 error_message=str(e),
                 data=e.data if isinstance(e, ResnapError) else {},
@@ -145,19 +145,19 @@ def async_resnap(
         _clear(service)
         token = clear_metadata()
 
-        results_retriver = ResultsRetriver(service, options)
-        result, is_recovery = results_retriver.get_results(_func, args, kwargs)
+        results_retriever = ResultsRetriever(service, options)
+        result, is_recovery = results_retriever.get_results(_func, args, kwargs)
         if is_recovery:
             return result
 
         try:
-            logger.debug(f"Executing function {results_retriver.func_name}...")
+            logger.debug(f"Executing function {results_retriever.func_name}...")
             result = await _func(*args, **kwargs)
             _save(
                 service=service,
-                func_name=results_retriver.func_name,
-                output_folder=results_retriver.output_folder,
-                hashed_arguments=results_retriver.hashed_arguments,
+                func_name=results_retriever.func_name,
+                output_folder=results_retriever.output_folder,
+                hashed_arguments=results_retriever.hashed_arguments,
                 result=result,
                 extra_metadata=get_metadata(),
                 output_format=options.get("output_format"),
@@ -166,9 +166,9 @@ def async_resnap(
 
         except Exception as e:
             service.save_failed_metadata(
-                func_name=results_retriver.func_name,
-                output_folder=results_retriver.output_folder,
-                hashed_arguments=results_retriver.hashed_arguments,
+                func_name=results_retriever.func_name,
+                output_folder=results_retriever.output_folder,
+                hashed_arguments=results_retriever.hashed_arguments,
                 event_time=datetime.now(),
                 error_message=str(e),
                 data=e.data if isinstance(e, ResnapError) else {},
