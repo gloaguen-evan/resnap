@@ -1,19 +1,14 @@
-import re
 import subprocess
-from pathlib import Path
-
-INIT_PATH = Path("resnap/__init__.py")
+from resnap import __version__ as current_version
 
 
-def extract_version(path: Path) -> str:
-    content = path.read_text(encoding="utf-8")
-    match = re.search(r'__version__\s*=\s*[\'"]([^\'"]+)[\'"]', content)
-    if not match:
-        raise RuntimeError("Impossible de trouver __version__")
-    return match.group(1)
+def git_tag(version: str) -> None:
+    """
+    Create a git tag with the given version and push it to the remote repository.
 
-
-def git_tag(version):
+    Args:
+        version (str): The version to tag.
+    """
     tag = f"v{version}"
     print(f"Création du tag : {tag}")
     subprocess.run(["git", "tag", tag], check=True)
@@ -22,7 +17,4 @@ def git_tag(version):
 
 
 if __name__ == "__main__":
-    if not INIT_PATH.exists():
-        raise FileNotFoundError(f"Fichier introuvable : {INIT_PATH}")
-    version = extract_version(INIT_PATH)
-    git_tag(version)
+    git_tag(current_version)
