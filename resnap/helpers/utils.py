@@ -94,8 +94,10 @@ def load_file(file_path: str, key: str | None = None) -> dict | ConfigParser | S
     Args:
         file_path (str): The path to the file.
         key (str | None): The key to retrieve from the file. Defaults to None.
+
     Returns:
         dict | ConfigParser: The loaded file data.
+
     Raises:
         ValueError: If the file format is not supported.
         KeyError: If the key is not found in the file.
@@ -121,6 +123,7 @@ def _load_yaml_file(file_path: str) -> dict:
 
     Args:
         file_path (str): Path to the file
+
     Returns:
         dict: yaml file data
     """
@@ -131,8 +134,10 @@ def _load_yaml_file(file_path: str) -> dict:
 def _load_cfg_file(file_path: str) -> ConfigParser:
     """
     Load a cfg file into a ConfigParser object
+
     Args:
         file_path (str): Path to the file
+
     Returns:
         ConfigParser: cfg file data
     """
@@ -149,6 +154,7 @@ def _load_json_file(file_path: str) -> dict:
 
     Args:
         file_path (str): Path to the file
+
     Returns:
         dict: json file data
     """

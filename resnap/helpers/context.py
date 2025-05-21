@@ -32,6 +32,7 @@ def add_metadatas(metadata: dict[str, Any]) -> None:
 def get_metadata() -> dict:
     """
     Get the metadata from the checkpoint context.
+
     Returns:
         dict: The metadata from the checkpoint context.
     """

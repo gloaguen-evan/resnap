@@ -13,6 +13,16 @@ logger = logging.getLogger("resnap")
 
 
 def get_config_data(file_path: str | None = None) -> Config:
+    """
+    Get the configuration data from the specified file or the default file.
+    If no file is specified, it will look for a default configuration file.
+
+    Args:
+        file_path (str | None): Path to the configuration file. If None, it will look for a default file.
+
+    Returns:
+        Config: Configuration data.
+    """
     if not file_path:
         file_path = get_config_file_path()
     if file_path.endswith(".toml"):

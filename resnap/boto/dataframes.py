@@ -14,21 +14,22 @@ AVAILABLE_COMPRESSIONS = {"gzip": [".gz"], "snappy": ["*"]}
 class DataFrameHandler(ABC):
     @staticmethod
     @abstractmethod
-    def read_df(bytes_object, **kwargs) -> pd.DataFrame:  # pragma: no cover
-        pass
+    def read_df(bytes_object, **kwargs) -> pd.DataFrame: ...  # pragma: no cover
 
     @staticmethod
     @abstractmethod
-    def write_df(df: pd.DataFrame, remote_path: str, **kwargs) -> None:  # pragma: no cover
-        pass
+    def write_df(df: pd.DataFrame, remote_path: str, **kwargs) -> None: ...  # pragma: no cover
 
     @staticmethod
     def verify_compression_and_extension(compression: str | None, filepath: str) -> None:
-        """check compression mode.
+        """Check compression mode.
 
-        :param compression: compression mode
-        :raises ValueError: if unsupported compression mode
-        :returns: None
+        Args:
+            compression (str | None): Compression mode.
+            filepath (str): File path.
+
+        Raises:
+            ValueError: If compression is not supported or if the file extension does not match the compression mode.
         """
         if not compression:
             return
@@ -54,6 +55,17 @@ class CSVHandler(DataFrameHandler):
         nrows: int | None = None,
         **kwargs,
     ) -> pd.DataFrame:
+        """Read a CSV file from a bytes object and return it as a DataFrame.
+
+        Args:
+            bytes_object (BufferType): The bytes object containing the CSV data.
+            compression (str): The compression method to use (e.g., "gzip").
+            nrows (int | None): The number of rows to read from the CSV file. If None, read all rows.
+            **kwargs: Additional arguments to pass to the pandas read_csv function.
+
+        Returns:
+            pd.DataFrame: The DataFrame containing the data from the CSV file.
+        """
         if nrows is not None and compression == "gzip":  # top N from gzip file
             return CSVHandler._read_df_nrows_gzip(bytes_object, nrows=nrows, **kwargs)
         elif nrows is not None:  # top N from file
@@ -62,6 +74,16 @@ class CSVHandler(DataFrameHandler):
 
     @staticmethod
     def write_df(df: pd.DataFrame, compression: str | None = None, **kwargs) -> io.BytesIO:
+        """Write a DataFrame to a bytes object in CSV format.
+
+        Args:
+            df (pd.DataFrame): The DataFrame to write.
+            compression (str | None): The compression method to use (e.g., "gzip").
+            **kwargs: Additional arguments to pass to the pandas to_csv function.
+
+        Returns:
+            io.BytesIO: The bytes object containing the CSV data.
+        """
         if not compression:
             buffer = io.StringIO()
             df.to_csv(buffer, **kwargs)
@@ -108,12 +130,31 @@ class CSVHandler(DataFrameHandler):
 class ParquetHandler(DataFrameHandler):
     @staticmethod
     def read_df(bytes_object: BufferType, **kwargs) -> pd.DataFrame:
+        """Read a Parquet file from a bytes object and return it as a DataFrame.
+
+        Args:
+            bytes_object (BufferType): The bytes object containing the Parquet data.
+            **kwargs: Additional arguments to pass to the pandas read_parquet function.
+
+        Returns:
+            pd.DataFrame: The DataFrame containing the data from the Parquet file.
+        """
         kwargs.pop("engine", None)
         reader = pa.BufferReader(bytes_object.read())
         return pd.read_parquet(reader, engine="pyarrow", **kwargs)
 
     @staticmethod
     def write_df(df: pd.DataFrame, compression: str | None = None, **kwargs) -> io.BytesIO:
+        """Write a DataFrame to a bytes object in Parquet format.
+
+        Args:
+            df (pd.DataFrame): The DataFrame to write.
+            compression (str | None): The compression method to use (e.g., "gzip").
+            **kwargs: Additional arguments to pass to the pandas to_parquet function.
+
+        Returns:
+            io.BytesIO: The bytes object containing the Parquet data.
+        """
         kwargs.pop("engine", None)
         buffer = io.BytesIO()
         df.to_parquet(buffer, engine="pyarrow", compression=compression, **kwargs)
@@ -128,6 +169,17 @@ HANDLERS_MAP = {
 
 
 def get_dataframe_handler(file_format: str = "csv") -> DataFrameHandler:
+    """Get the appropriate DataFrame handler based on the file format.
+
+    Args:
+        file_format (str): The file format (e.g., "csv", "parquet").
+
+    Returns:
+        DataFrameHandler: The appropriate DataFrame handler class.
+
+    Raises:
+        ValueError: If the file format is not supported.
+    """
     if file_format not in HANDLERS_MAP.keys():
         raise ValueError(f"{file_format} is not supported. Valid ones are {', '.join(HANDLERS_MAP)}.")
 

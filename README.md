@@ -51,7 +51,7 @@ output_base_path = "results"            # Directory where output files will be s
 secrets_file_name = ""                  # Optional: path to a secrets file (leave empty if unused (e.g, 'local'))
 enable_remove_old_files = true          # Automatically delete old files based on retention policy
 max_history_files_length = 3            # Duration value for file retention, used with max_history_files_time_unit
-max_history_files_time_unit = "day"  # Time unit used for history retention (e.g., 'second', 'minute', 'hour', 'day')
+max_history_files_time_unit = "day"     # Time unit used for history retention (e.g., 'second', 'minute', 'hour', 'day')
 ```
 
 ## 🧪 Quick Example

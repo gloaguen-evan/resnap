@@ -13,9 +13,9 @@ _UNDEFINED_VALUE = object()
 class S3Client:
     """S3Client is a class that provides methods to interact with Amazon S3 or Ceph.
     It allows uploading, downloading, listing, and deleting files and directories in S3.
+
     Attributes:
         config (S3Config): Configuration object containing S3 connection details.
-        bucket_name (str): The name of the S3 bucket.
     """
 
     def __init__(self, config: S3Config) -> None:
@@ -41,6 +41,7 @@ class S3Client:
 
     def download_file(self, local_path_or_fileobj: str | io.FileIO | io.BytesIO, remote_path: str) -> None:
         """Download a file from S3.
+
         Args:
             local_path_or_fileobj (str | io.FileIO | io.BytesIO): Local file path or file-like object to download to.
             remote_path (str): S3 path (key) of the file to download.
@@ -60,6 +61,7 @@ class S3Client:
         Args:
             remote_dir_path (str): The S3 path to the directory.
             recursive (bool): Whether to list objects recursively.
+
         Returns:
             List[str]: A list of object keys in the specified directory.
         """
@@ -68,9 +70,11 @@ class S3Client:
 
     def list_folders_and_files(self, remote_dir_path: str = "", recursive: bool = False) -> tuple[list[str], list[str]]:
         """List folders and files in a directory in S3.
+
         Args:
             remote_dir_path (str): The S3 path to the directory.
             recursive (bool): Whether to list objects recursively.
+
         Returns:
             tuple[list[str], list[str]]: A tuple containing two lists: folders and files.
         """
@@ -91,13 +95,19 @@ class S3Client:
 
     def delete_object(self, key: str) -> None:
         """Delete an object from S3.
+
         Args:
             key (str): The S3 key of the object to delete.
         """
         with get_s3_connection(self.config) as connection:
             connection.delete_object(Bucket=self.bucket_name, Key=key)
 
-    def delete_objects(self, keys: list[str]):
+    def delete_objects(self, keys: list[str]) -> None:
+        """Delete multiple objects from S3.
+
+        Args:
+            keys (list[str]): A list of S3 keys of the objects to delete.
+        """
         objects = [{"Key": key} for key in keys]
         if not objects:
             return
@@ -105,6 +115,14 @@ class S3Client:
             connection.delete_objects(Bucket=self.bucket_name, Delete={"Objects": objects})
 
     def object_exists(self, remote_path: str) -> bool:
+        """Check if an object exists in S3.
+
+        Args:
+            remote_path (str): The S3 path (key) of the object to check.
+
+        Returns:
+            bool: True if the object exists, False otherwise.
+        """
         remote_path = remove_separator_at_begin(remote_path)
         with get_s3_connection(self.config) as connection:
             try:

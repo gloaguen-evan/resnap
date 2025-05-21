@@ -5,8 +5,10 @@ SEPARATOR = "/"
 
 def remove_separator_at_begin(path: str) -> str:
     """Remove the leading separator from the given path.
+
     Args:
         path (str): The given path.
+
     Returns:
         str: The path without the leading separator.
     """
@@ -32,9 +34,11 @@ def format_remote_path_folder_to_search(path: str) -> str:
 
 def get_folders_and_files(remote_dir_path: str, page_iterator: PageIterator) -> tuple[list[str], list[str]]:
     """Get the folders and files from the given page iterator.
+
     Args:
         remote_dir_path (str): The remote directory path.
         page_iterator (PageIterator): The page iterator.
+
     Returns:
         tuple[list[str], list[str]]: A tuple containing the list of folders and files.
     """
