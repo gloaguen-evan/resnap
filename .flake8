@@ -1,0 +1,16 @@
+[flake8]
+max-complexity = 10
+max-line-length = 120
+per-file-ignores =
+    tests/**/*.py: F811, F401, E501, F403
+    resnap/**/*.py: E501, E203
+exclude =
+    .git,
+    __pycache__,
+    docs/source/conf.py,
+    old,
+    build,
+    dist,
+    .venv,
+    .vscode,
+    .pytest_cache

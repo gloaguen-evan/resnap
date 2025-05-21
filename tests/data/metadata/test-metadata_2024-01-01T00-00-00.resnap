@@ -1,0 +1,7 @@
+{
+    "status": "SUCCESS",
+    "event_time": "2024-01-01T00:00:00",
+    "result_path": "test_2024-01-01T00-00-00.resnap.pkl",
+    "result_type": "str",
+    "hashed_arguments": "926248e52d1fa532c317e37da24ed652ae64110f8219cb5e061668bd3091f048"
+}
