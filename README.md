@@ -79,7 +79,7 @@ Each snapshot includes:
 - A metadata file (e.g., timestamp, arguments, execution time, etc.)
 
 ## 📚 Documentation
-(Coming soon)
+[Documentation](https://resnap.readthedocs.io/en/latest/)
 
 ## 🛡️ License
 This project is licensed under the MIT License. See the LICENSE file for details.
