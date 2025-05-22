@@ -1,3 +1,5 @@
+🔗 [View Source on GitHub](https://github.com/gloaguen-evan/resnap)
+
 # Usage Guide
 
 This guide walks you through configuring and using `resnap` in a real-world Python project.
@@ -59,10 +61,26 @@ You can also pass options directly to the decorator:
     output_folder="cached-results",
     consider_args=True,
     enable_recovery=True,
-    considered_attributes=["model_name"]
 )
 def predict(model_name: str, x: list[int]) -> list[int]:
     ...
+```
+
+Other example with method:
+```python
+class MyClass:
+    def __init__(self, attribute: str) -> None:
+        self._attribute = attribute
+
+    @resnap(
+        output_format="json",
+        output_folder="cached-results",
+        consider_args=True,
+        enable_recovery=True,
+        considered_attributes=["_attribute"],
+    )
+    def predict(model_name: str, x: list[int]) -> list[int]:
+        ...
 ```
 
 ## 4. Good Practices

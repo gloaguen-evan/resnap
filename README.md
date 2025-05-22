@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="art/logo.png" alt="resnap logo" style="width:100%; max-width:600px;"/>
+  <img src="https://github.com/gloaguen-evan/resnap/blob/main/art/logo.png?raw=true" alt="resnap logo" style="width:100%; max-width:600px;"/>
 </p>
 
 <h1 align="center">resnap</h1>
