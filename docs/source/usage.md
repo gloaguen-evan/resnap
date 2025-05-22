@@ -30,6 +30,7 @@ resnap:
   access_key: access_key
   secret_key: secret_key
   bucket_name: bucket_name
+  cert_file_path: path_of_ca-certificate
 ```
 
 ## 2. Basic Usage
