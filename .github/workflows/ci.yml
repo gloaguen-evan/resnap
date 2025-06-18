@@ -73,4 +73,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Notify skip
-      run: echo "::notice::Tests were skipped because the last commit message contains #no_test"
+      run: |
+        echo "::notice::Tests were skipped because the last commit message contains #no_test"
