@@ -50,6 +50,6 @@ Custom Metadata
 ---------------------
 
 .. automodule:: resnap.helpers.context
-   :members: add_metadata, add_metadatas
+   :members: add_metadata, add_multiple_metadata
    :show-inheritance:
    :undoc-members:
