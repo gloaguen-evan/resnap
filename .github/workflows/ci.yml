@@ -35,9 +35,9 @@ jobs:
     - name: Detect "#no_test" in last commit
       id: detect
       run: |
-        git fetch --depth=2
-        LAST_COMMIT=$(git log -1 --pretty=%B)
-        echo "Last commit: $LAST_COMMIT"
+        git fetch --unshallow || true
+        LAST_COMMIT=$(git log --no-merges -1 --pretty=%B)
+        echo "Last commit message: $LAST_COMMIT"
         if [[ "$LAST_COMMIT" == *"#no_test"* ]]; then
           echo "skip=true" >> $GITHUB_OUTPUT
         else
