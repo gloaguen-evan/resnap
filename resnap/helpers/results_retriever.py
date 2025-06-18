@@ -41,16 +41,16 @@ class ResultsRetriever:
         if not self._enable_recovery:
             return None, False
 
-        metadatas: list[Metadata] = self._service.get_success_metadatas(self.func_name, self.output_folder)
-        if not metadatas:
+        metadata: list[Metadata] = self._service.get_success_metadata(self.func_name, self.output_folder)
+        if not metadata:
             return None, False
 
         if not self._consider_args:
-            return self._service.read_result(metadatas[0]), True
+            return self._service.read_result(metadata[0]), True
 
-        for metadata in metadatas:
-            if metadata.hashed_arguments == self.hashed_arguments:
+        for metadata_entry in metadata:
+            if metadata_entry.hashed_arguments == self.hashed_arguments:
                 logger.debug("Returning saved result...")
-                return self._service.read_result(metadata), True
+                return self._service.read_result(metadata_entry), True
 
         return None, False

@@ -75,6 +75,13 @@ class TestConfig:
         with pytest.raises(ValueError):
             Config(**config)
 
+    def test_should_not_raise_if_not_enabled_and_save_to_is_ceph(self) -> None:
+        # Given
+        input_config = {"enabled": False}
+
+        # When / Then
+        Config(**input_config)
+
     def test_should_raise_if_not_secrets_file_name_and_save_to_is_boto(self) -> None:
         # When / Then
         with pytest.raises(ValidationError, match="secrets_file_name is required when save_to is s3"):

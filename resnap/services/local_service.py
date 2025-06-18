@@ -42,7 +42,7 @@ class LocalResnapService(ResnapService):
             data = json.load(json_file)
         return Metadata.from_dict(data)
 
-    def get_success_metadatas(self, func_name: str, output_folder: str) -> list[Metadata]:
+    def get_success_metadata(self, func_name: str, output_folder: str) -> list[Metadata]:
         files: list[Path] = [
             Path(x) for x in Path(self._get_output_path(output_folder)).rglob(f"*{EXT}*")
             if x.is_file() and func_name in x.name and x.suffix == EXT
@@ -51,8 +51,8 @@ class LocalResnapService(ResnapService):
         if not files:
             return []
 
-        metadatas: list[Metadata] = [self._read_metadata(f) for f in sorted(files, reverse=True)]
-        return [m for m in metadatas if m.status == Status.SUCCESS]
+        metadata: list[Metadata] = [self._read_metadata(f) for f in sorted(files, reverse=True)]
+        return [m for m in metadata if m.status == Status.SUCCESS]
 
     def _read_parquet_to_dataframe(self, file_path: str) -> pd.DataFrame:
         return pd.read_parquet(file_path)

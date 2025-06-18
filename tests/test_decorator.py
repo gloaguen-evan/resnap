@@ -105,7 +105,7 @@ def test_should_not_use_service_if_disabled_sync(mock_service: MagicMock) -> Non
 def test_should_return_result_if_metadata_exists_sync(mock_service: MagicMock) -> None:
     # Given
     mock_service.return_value.is_enabled = True
-    mock_service.return_value.get_success_metadatas.return_value = [
+    mock_service.return_value.get_success_metadata.return_value = [
         MetadataSuccessBuilder.a_metadata().with_arguments({"magic_number": 40}).build(),
         (
             MetadataSuccessBuilder.a_metadata()
@@ -122,7 +122,7 @@ def test_should_return_result_if_metadata_exists_sync(mock_service: MagicMock) -
     # Then
     assert result == 42
     mock_service.return_value.clear_old_saves.assert_called_once()
-    mock_service.return_value.get_success_metadatas.assert_called_once()
+    mock_service.return_value.get_success_metadata.assert_called_once()
     mock_service.return_value.read_result.assert_called_once()
 
 
@@ -137,7 +137,7 @@ def test_should_return_result_if_metadata_exists_sync(mock_service: MagicMock) -
 def test_should_return_result_sync(metadata: Metadata | None, mock_service: MagicMock) -> None:
     # Given
     mock_service.return_value.is_enabled = True
-    mock_service.return_value.get_success_metadatas.return_value = [metadata] if metadata else []
+    mock_service.return_value.get_success_metadata.return_value = [metadata] if metadata else []
     now_time = datetime.now()
     mock_service.return_value.save_result.return_value = ("/path/to/result", now_time)
 
@@ -148,7 +148,7 @@ def test_should_return_result_sync(metadata: Metadata | None, mock_service: Magi
     mock_service.return_value.read_result.assert_not_called()
     assert result == 42
     mock_service.return_value.clear_old_saves.assert_called_once()
-    mock_service.return_value.get_success_metadatas.assert_called_once()
+    mock_service.return_value.get_success_metadata.assert_called_once()
     mock_service.return_value.save_result.assert_called_with("func", 42, "", None)
     mock_service.return_value.save_success_metadata.assert_called_once_with(
         func_name="func",
@@ -164,7 +164,7 @@ def test_should_return_result_sync(metadata: Metadata | None, mock_service: Magi
 def test_should_use_output_format_option_sync(mock_service: MagicMock) -> None:
     # Given
     mock_service.return_value.is_enabled = True
-    mock_service.return_value.get_success_metadatas.return_value = []
+    mock_service.return_value.get_success_metadata.return_value = []
     now_time = datetime.now()
     mock_service.return_value.save_result.return_value = ("/path/to/result", now_time)
 
@@ -179,7 +179,7 @@ def test_should_use_output_format_option_sync(mock_service: MagicMock) -> None:
 def test_should_add_custom_metadata(mock_service: MagicMock) -> None:
     # Given
     mock_service.return_value.is_enabled = True
-    mock_service.return_value.get_success_metadatas.return_value = []
+    mock_service.return_value.get_success_metadata.return_value = []
     now_time = datetime.now()
     mock_service.return_value.save_result.return_value = ("/path/to/result", now_time)
 
@@ -220,7 +220,7 @@ def test_should_not_check_arguments_if_disabled(mock_service: MagicMock) -> None
     mock_service.return_value.is_enabled = True
     mock_service.return_value.read_result.return_value = 30
     metadata = MetadataSuccessBuilder.a_metadata().with_arguments({"magic_number": 30}).build()
-    mock_service.return_value.get_success_metadatas.return_value = [metadata]
+    mock_service.return_value.get_success_metadata.return_value = [metadata]
 
     # When
     result = func_not_consider_args(12)
@@ -248,7 +248,7 @@ def test_should_raise_error_sync(
 ) -> None:
     # Given
     mock_service.return_value.is_enabled = True
-    mock_service.return_value.get_success_metadatas.return_value = []
+    mock_service.return_value.get_success_metadata.return_value = []
 
     # When
     with pytest.raises(error_type, match=re.escape(error_message)):
@@ -269,7 +269,7 @@ def test_should_raise_error_sync(
 def test_should_use_output_folder_sync(mock_service: MagicMock) -> None:
     # Given
     mock_service.return_value.is_enabled = True
-    mock_service.return_value.get_success_metadatas.return_value = []
+    mock_service.return_value.get_success_metadata.return_value = []
     now_time = datetime.now()
     mock_service.return_value.save_result.return_value = ("/path/to/result/toto", now_time)
 
@@ -294,7 +294,7 @@ def test_should_use_output_folder_sync(mock_service: MagicMock) -> None:
 async def test_should_add_custom_metadata_async(mock_service: MagicMock) -> None:
     # Given
     mock_service.return_value.is_enabled = True
-    mock_service.return_value.get_success_metadatas.return_value = []
+    mock_service.return_value.get_success_metadata.return_value = []
     now_time = datetime.now()
     mock_service.return_value.save_result.return_value = ("/path/to/result", now_time)
 
@@ -332,7 +332,7 @@ async def test_should_not_use_service_if_disabled_async(mock_service: MagicMock)
 async def test_should_return_result_if_metadata_exists_async(mock_service: MagicMock) -> None:
     # Given
     mock_service.return_value.is_enabled = True
-    mock_service.return_value.get_success_metadatas.return_value = [
+    mock_service.return_value.get_success_metadata.return_value = [
         MetadataSuccessBuilder.a_metadata().with_arguments({"magic_number": 40}).build()
     ]
     mock_service.return_value.read_result.return_value = 42
@@ -343,7 +343,7 @@ async def test_should_return_result_if_metadata_exists_async(mock_service: Magic
     # Then
     assert result == 42
     mock_service.return_value.clear_old_saves.assert_called_once()
-    mock_service.return_value.get_success_metadatas.assert_called_once()
+    mock_service.return_value.get_success_metadata.assert_called_once()
     mock_service.return_value.read_result.assert_called_once()
 
 
@@ -359,7 +359,7 @@ async def test_should_return_result_if_metadata_exists_async(mock_service: Magic
 async def test_should_return_result_async(metadata: Metadata | None, mock_service: MagicMock) -> None:
     # Given
     mock_service.return_value.is_enabled = True
-    mock_service.return_value.get_success_metadatas.return_value = [metadata] if metadata else []
+    mock_service.return_value.get_success_metadata.return_value = [metadata] if metadata else []
     now_time = datetime.now()
     mock_service.return_value.save_result.return_value = ("/path/to/result", now_time)
 
@@ -370,7 +370,7 @@ async def test_should_return_result_async(metadata: Metadata | None, mock_servic
     mock_service.return_value.read_result.assert_not_called()
     assert result == 42
     mock_service.return_value.clear_old_saves.assert_called_once()
-    mock_service.return_value.get_success_metadatas.assert_called_once()
+    mock_service.return_value.get_success_metadata.assert_called_once()
     mock_service.return_value.save_result.assert_called_with("async_func", 42, "", None)
     mock_service.return_value.save_success_metadata.assert_called_once_with(
         func_name="async_func",
@@ -387,7 +387,7 @@ async def test_should_return_result_async(metadata: Metadata | None, mock_servic
 async def test_should_use_output_format_option_async(mock_service: MagicMock) -> None:
     # Given
     mock_service.return_value.is_enabled = True
-    mock_service.return_value.get_success_metadatas.return_value = []
+    mock_service.return_value.get_success_metadata.return_value = []
     now_time = datetime.now()
     mock_service.return_value.save_result.return_value = ("/path/to/result", now_time)
 
@@ -417,7 +417,7 @@ async def test_should_raise_error_async(
 ) -> None:
     # Given
     mock_service.return_value.is_enabled = True
-    mock_service.return_value.get_success_metadatas.return_value = []
+    mock_service.return_value.get_success_metadata.return_value = []
 
     # When
     with pytest.raises(error_type, match=re.escape(error_message)):

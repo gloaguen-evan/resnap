@@ -1,4 +1,5 @@
 import subprocess
+
 from resnap import __version__ as current_version
 
 

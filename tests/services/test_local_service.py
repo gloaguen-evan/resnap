@@ -122,7 +122,7 @@ class TestLocalService:
         assert isinstance(result, Metadata)
         assert result == expected_metadata
 
-    def test_should_return_metadatas(self, mock_path_rglob: MagicMock) -> None:
+    def test_should_return_multiple_metadata(self, mock_path_rglob: MagicMock) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         mock_path_rglob.return_value = [
@@ -134,7 +134,7 @@ class TestLocalService:
         ]
 
         # When
-        result = service.get_success_metadatas("test", "")
+        result = service.get_success_metadata("test", "")
 
         # Then
         assert result == [
@@ -164,7 +164,7 @@ class TestLocalService:
         mock_path_rglob.return_value = []
 
         # When
-        result = service.get_success_metadatas("test", "toto")
+        result = service.get_success_metadata("test", "toto")
 
         # Then
         assert len(result) == 0

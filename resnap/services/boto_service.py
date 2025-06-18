@@ -8,7 +8,7 @@ import pandas as pd
 
 from ..boto import S3Client, S3Config
 from ..helpers.config import Config
-from ..helpers.constants import EXT, SEPATOR
+from ..helpers.constants import EXT, SEPARATOR
 from ..helpers.metadata import Metadata
 from ..helpers.status import Status
 from ..helpers.utils import calculate_datetime_from_now, get_datetime_from_filename, load_file
@@ -24,7 +24,7 @@ class BotoResnapService(ResnapService):
 
     @staticmethod
     def _format_path(path: str) -> str:
-        return path if path.endswith(SEPATOR) else f"{path}{SEPATOR}"
+        return path if path.endswith(SEPARATOR) else f"{path}{SEPARATOR}"
 
     def clear_old_saves(self) -> None:
         if not self._client.object_exists(self._format_path(self.config.output_base_path)):
@@ -43,7 +43,7 @@ class BotoResnapService(ResnapService):
         folders: set = set()
         to_delete: list = []
         for file in files:
-            if file.endswith(SEPATOR):
+            if file.endswith(SEPARATOR):
                 folders.add(file)
                 continue
             if EXT not in file:
@@ -69,7 +69,7 @@ class BotoResnapService(ResnapService):
         if path and not self._client.object_exists(self._format_path(path)):
             self._client.mkdir(path)
         if folder_name:
-            output_path = SEPATOR.join([path, folder_name])
+            output_path = SEPARATOR.join([path, folder_name])
             if not self._client.object_exists(self._format_path(output_path)):
                 self._client.mkdir(output_path)
 
@@ -79,7 +79,7 @@ class BotoResnapService(ResnapService):
 
         return Metadata.from_dict(data)
 
-    def get_success_metadatas(self, func_name: str, output_folder: str) -> list[Metadata]:
+    def get_success_metadata(self, func_name: str, output_folder: str) -> list[Metadata]:
         files: list[str] = [
             file for file in self._client.list_objects(self._get_output_path(output_folder))
             if func_name in file and file.endswith(EXT)
@@ -88,8 +88,8 @@ class BotoResnapService(ResnapService):
         if not files:
             return []
 
-        metadatas: list[Metadata] = [self._read_metadata(f) for f in sorted(files, reverse=True)]
-        return [m for m in metadatas if m.status == Status.SUCCESS]
+        metadata: list[Metadata] = [self._read_metadata(f) for f in sorted(files, reverse=True)]
+        return [m for m in metadata if m.status == Status.SUCCESS]
 
     def _read_parquet_to_dataframe(self, file_path: str) -> pd.DataFrame:
         return self._client.get_df_from_file(file_path, file_format="parquet")

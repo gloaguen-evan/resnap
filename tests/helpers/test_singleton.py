@@ -26,7 +26,7 @@ def test_single_instance_abc() -> None:
 def test_thread_safety() -> None:
     instances = []
 
-    def create_instance():
+    def create_instance() -> None:
         instances.append(SingletonABCMetaClass())
 
     threads = [Thread(target=create_instance) for _ in range(10)]
