@@ -5,11 +5,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [0.2.0] - 2025-06-19
-* Change hash logic
-* Fix config check secret filename if not enabled
-* Add mypy and pyright support
-* rename add_metadatas -> add_multiple_metadata
-* fix some typing
+### Added
+- Add mypy and pyright support
+
+### Changed
+- Change hash logic
+- Rename add_metadatas -> add_multiple_metadata
+- Change CI with #no_test tag in commit
+
+### Fixed
+- Fix config check secret filename if not enabled
+- Fix some typing
 
 ## [0.1.1] - 2025-05-22
 ### Changed
