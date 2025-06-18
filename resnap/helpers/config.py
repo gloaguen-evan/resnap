@@ -22,6 +22,6 @@ class Config(BaseModel):
 
     @model_validator(mode="after")
     def check_secrets_file_name(self) -> Self:
-        if self.save_to != Services.LOCAL and not self.secrets_file_name:
+        if self.enabled and self.save_to != Services.LOCAL and not self.secrets_file_name:
             raise ValueError(f"secrets_file_name is required when save_to is {self.save_to.value}")
         return self

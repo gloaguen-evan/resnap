@@ -196,7 +196,7 @@ class TestBotoService:
         assert isinstance(result, Metadata)
         assert result == expected_metadata
 
-    def test_should_return_metadatas(
+    def test_should_return_multiple_metadata(
         self,
         mock_s3_client_list_objects: MagicMock,
         mock_read_metadata: MagicMock,
@@ -210,7 +210,7 @@ class TestBotoService:
             "toto_2021-01-02T00-00-00.resnap",
             "test.csv",
         ]
-        expected_metadatas = [
+        expected_metadata = [
             MetadataSuccess(
                 status=Status.SUCCESS,
                 event_time=datetime.fromisoformat("2024-01-01T00:00:00"),
@@ -226,13 +226,13 @@ class TestBotoService:
                 hashed_arguments=hash_arguments({}),
             ),
         ]
-        mock_read_metadata.side_effect = expected_metadatas
+        mock_read_metadata.side_effect = expected_metadata
 
         # When
-        result = service.get_success_metadatas("test", "")
+        result = service.get_success_metadata("test", "")
 
         # Then
-        assert result == expected_metadatas
+        assert result == expected_metadata
         assert len(result) == 2
 
     def test_should_return_none_if_not_metadata(self, mock_s3_client_list_objects: MagicMock) -> None:
@@ -241,7 +241,7 @@ class TestBotoService:
         mock_s3_client_list_objects.return_value = []
 
         # When
-        result = service.get_success_metadatas("test", "")
+        result = service.get_success_metadata("test", "")
 
         # Then
         assert len(result) == 0

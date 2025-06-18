@@ -6,7 +6,7 @@ import pytest
 
 from resnap.helpers.context import (
     add_metadata,
-    add_metadatas,
+    add_multiple_metadata,
     clear_metadata,
     get_metadata,
     restore_metadata,
@@ -33,22 +33,22 @@ def test_add_and_get_metadata() -> None:
     clear_metadata()
 
 
-def test_add_and_get_metadatas() -> None:
+def test_add_and_get_multiple_metadata() -> None:
     # Given
     clear_metadata()
 
     # When / Then
     add_metadata("key1", "value0")
-    metadatas = {
+    metadata = {
         "key1": "value1",
         "key2": 42,
         "key3": 3.14,
     }
-    add_metadatas(metadatas)
+    add_multiple_metadata(metadata)
     result = get_metadata()
 
     assert isinstance(result, dict)
-    assert result == metadatas
+    assert result == metadata
 
     # Finally
     clear_metadata()
@@ -66,7 +66,7 @@ def test_clear_metadata() -> None:
     assert metadata == {}
 
 
-def test_clear_and_restore_metadata():
+def test_clear_and_restore_metadata() -> None:
     add_metadata("a", 1)
     assert get_metadata() == {"a": 1}
 

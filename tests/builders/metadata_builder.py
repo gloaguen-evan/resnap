@@ -42,7 +42,7 @@ class MetadataSuccessBuilder(MetadataBuilder):
 
     def with_result_type(self, result_type: str) -> Self:
         self._result_type = result_type
-        return
+        return self
 
     def build(self) -> MetadataSuccess:
         return MetadataSuccess(

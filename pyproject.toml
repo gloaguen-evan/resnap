@@ -53,6 +53,7 @@ allow-direct-references = true
 # limit which files are included in the sdist (.tar.gz) asset,
 include = [
     "/README.md",
+    "/CHANGELOG.md",
     "/Makefile",
     "/resnap",
     "/tests",

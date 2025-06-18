@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 
 from ..helpers.config import Config
-from ..helpers.constants import EXT, SEPATOR
+from ..helpers.constants import EXT, SEPARATOR
 from ..helpers.metadata import Metadata, MetadataFail, MetadataSuccess
 from ..helpers.singleton import SingletonABCMeta
 from ..helpers.status import Status
@@ -36,7 +36,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
         if output_folder:
             parts.append(output_folder)
         parts.append(f"{func_name}_{event_time.isoformat().replace(':', '-')}{EXT}")
-        return SEPATOR.join(parts)
+        return SEPARATOR.join(parts)
 
     def result_path(self, func_name: str, event_time: datetime, output_folder: str, output_ext: str) -> str:
         """
@@ -56,7 +56,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
         if output_folder:
             parts.append(output_folder)
         parts.append(f"{func_name}_{event_time.isoformat().replace(':', '-')}{EXT}.{output_ext}")
-        return SEPATOR.join(parts)
+        return SEPARATOR.join(parts)
 
     @abstractmethod
     def clear_old_saves(self) -> None:  # pragma: no cover
@@ -94,9 +94,9 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
             self._create_folder(self.config.output_base_path, output_folder)
 
     @abstractmethod
-    def get_success_metadatas(self, func_name: str, output_folder: str) -> list[Metadata]:  # pragma: no cover
+    def get_success_metadata(self, func_name: str, output_folder: str) -> list[Metadata]:  # pragma: no cover
         """
-        Get all success metadatas based on the function name.
+        Get all success metadata based on the function name.
 
         Args:
             func_name (str): The function name.

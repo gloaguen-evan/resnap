@@ -1,13 +1,13 @@
 import hashlib
-import io
 import json
-import pickle
 from configparser import ConfigParser, SectionProxy
+from dataclasses import asdict, is_dataclass
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
+import pandas as pd
 import yaml
 
 from .constants import EXT
@@ -72,19 +72,55 @@ def get_datetime_from_filename(filename: Path | str) -> datetime:
     return datetime.fromisoformat(f"{extract_day}T{extract_time}")
 
 
+def make_json_serializable(obj: Any) -> Any:
+    """
+    Convert an object to a JSON-serializable format.
+    This function handles various types of objects, including pandas DataFrames,
+    dataclasses, dictionaries, lists, tuples, sets, and primitive types.
+
+    Args:
+        obj (Any): The object to convert to a JSON-serializable format.
+    Returns:
+        Any: The JSON-serializable representation of the object.
+    """
+    if isinstance(obj, pd.DataFrame):
+        # Sort DataFrame by index and columns to ensure stable output
+        # and reset index to avoid issues with non-serializable index types
+        df = obj.sort_index(axis=1).sort_index().reset_index(drop=True)
+        return df.to_dict(orient="records")  # Stable, JSON-compatible format
+    elif is_dataclass(obj):
+        return make_json_serializable(asdict(obj))
+    elif isinstance(obj, dict):
+        return {str(k): make_json_serializable(v) for k, v in sorted(obj.items())}
+    elif isinstance(obj, list):
+        return [make_json_serializable(v) for v in obj]
+    elif isinstance(obj, tuple):
+        return tuple(make_json_serializable(v) for v in obj)
+    elif isinstance(obj, set):
+        return sorted(make_json_serializable(v) for v in obj)
+    elif isinstance(obj, (int, float, str, bool)) or obj is None:
+        return obj
+    else:
+        try:
+            return make_json_serializable(vars(obj))
+        except TypeError:
+            return str(obj)
+
+
 def hash_arguments(args: dict[str, Any]) -> str:
     """
-    Hash the given arguments.
+    Hash the given arguments to create a unique identifier.
+    This function converts the arguments to a JSON-serializable format,
+    serializes them to a JSON string, and then computes the SHA-256 hash.
 
     Args:
         args (dict[str, Any]): The arguments to hash.
     Returns:
-        str: The hashed arguments.
+        str: The SHA-256 hash of the JSON-serializable arguments.
     """
-    with io.BytesIO() as buffer:
-        pickle.dump(args, buffer)
-        serialized_args = buffer.getvalue()
-    return hashlib.sha256(serialized_args).hexdigest()
+    serializable_args = make_json_serializable(args)
+    json_string = json.dumps(serializable_args, separators=(",", ":"), sort_keys=True)
+    return hashlib.sha256(json_string.encode("utf-8")).hexdigest()
 
 
 def load_file(file_path: str, key: str | None = None) -> dict | ConfigParser | SectionProxy:

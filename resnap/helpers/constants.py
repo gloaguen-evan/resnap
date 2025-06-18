@@ -1,2 +1,2 @@
 EXT = ".resnap"
-SEPATOR = "/"
+SEPARATOR = "/"

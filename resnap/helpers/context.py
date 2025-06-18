@@ -17,7 +17,7 @@ def add_metadata(key: str, value: Any) -> None:
     _checkpoint_metadata.set(metadata)
 
 
-def add_metadatas(metadata: dict[str, Any]) -> None:
+def add_multiple_metadata(metadata: dict[str, Any]) -> None:
     """
     Add multiple metadata to the checkpoint context.
 
@@ -39,7 +39,7 @@ def get_metadata() -> dict:
     return _checkpoint_metadata.get()
 
 
-def clear_metadata() -> None:
+def clear_metadata() -> Token:
     """
     Clear the metadata from the checkpoint context.
     """

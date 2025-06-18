@@ -1,4 +1,5 @@
 from configparser import SectionProxy
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -25,7 +26,7 @@ from resnap.helpers.utils import (
         (10, TimeUnit.WEEK, timedelta(weeks=10)),
     ],
 )
-def test_calculate_datetime_from_now(value: int, unit: TimeUnit, delta: datetime) -> None:
+def test_calculate_datetime_from_now(value: int, unit: TimeUnit, delta: timedelta) -> None:
     # Given
     now = datetime.now()
 
@@ -62,30 +63,60 @@ def test_should_extract_datetime_from_filename(filename: Path | str, expected: d
     assert result == expected
 
 
+@dataclass
+class TestDataClass:
+    arg_str: str
+    arg_int: int
+    arg_list: list[int]
+    arg_df: pd.DataFrame | None = None
+
+
+class TestClass:
+    def __init__(self, arg_str: str, arg_int: int, arg_list: list[int], arg_df: pd.DataFrame | None = None) -> None:
+        self.arg_str = arg_str
+        self.arg_int = arg_int
+        self.arg_list = arg_list
+        self.arg_df = arg_df
+
+
 @pytest.mark.parametrize(
     "arguments, expected",
     [
         (
             {"arg_str": "test", "arg_int": 42, "arg_list": [1, 2, 3]},
-            "bc142dc6f6399ecf5b5637b0e82fd6efc997bb41ac2a6822c9807def85d6f5f1",
+            "33e639b122556d8ad669ae7dcc9cf6576c0fdb6db6058acf0de5af199822b0be",
         ),
         (
             {"arg_int": 42, "arg_list": [1, 2, 3], "arg_str": "test"},
-            "2fa503a4eecf5750e99829c24fa020b28bfc01353e518f3d7d86835f2eaf291b",
+            "33e639b122556d8ad669ae7dcc9cf6576c0fdb6db6058acf0de5af199822b0be",
         ),
         (
-            {
-                "arg_df": pd.DataFrame({"A": [1, 2, 3], "B": [4, 5, 6]}),
-                "arg_str": "test",
-            },
-            "cd65480c72245387cccae12f49f68b145cfb6501c8fcffbdef9afdfe7792102a",
+            {"arg_int": 42, "arg_tuple": (1, 2, 3), "arg_str": "test"},
+            "ac616acb116c3f94bce02223d7544c49c41cc431798fe3c39e38f9cefc03ac2b",
         ),
         (
-            {
-                "arg_df": pd.DataFrame({"A": [3, 2, 1], "B": [6, 5, 4]}),
-                "arg_str": "test",
-            },
-            "d6b60d43b5c485e6cac69016bdd0eaf0a3436fdba27f9c45e2eae19491e2e202",
+            {"arg_int": 42, "arg_set": {1, 2, 3}, "arg_str": "test"},
+            "f3868811a5ec3310128f870c3c25b05d8f32999696cfee883ed07b4862aefc63",
+        ),
+        (
+            {"arg_df": pd.DataFrame({"A": [1, 2, 3], "B": [4, 5, 6]}), "arg_str": "test"},
+            "309f001ffe0ee049f7fa34f32f7668424e589a73795257a20e652dfaf78b73e8",
+        ),
+        (
+            {"arg_df": pd.DataFrame({"A": [3, 2, 1], "B": [6, 5, 4]}), "arg_str": "test"},
+            "cbaa16e213cf07f92cdd588522e8ffc458bc14b8acf89fce7196539ef1116e50",
+        ),
+        (
+            {"args_dataclass": TestDataClass("test", 42, [1, 2, 3], arg_df=pd.DataFrame({"A": [1, 2], "B": [3, 4]}))},
+            "cf807ac07815f225022df95c32adec700dc71e7a11331187aa1f0c74f8aa8237",
+        ),
+        (
+            {"args_class": TestClass("test", 42, [1, 2, 3], arg_df=pd.DataFrame({"A": [1, 2], "B": [3, 4]}))},
+            "54af02a514923a8f229e1bf8c39fd5d63e7b2d939a76ea0bf585be82284ffe13",
+        ),
+        (
+            {"arg_slice": slice(1, 5, 2), "arg_str": "test"},
+            "1bdd21fe2e391a88faf9671df103d38d55bcc6f6e17ef3b6d0e373ba89e8bf5c",
         ),
     ],
 )

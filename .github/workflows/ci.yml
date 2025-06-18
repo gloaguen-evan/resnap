@@ -25,8 +25,29 @@ jobs:
     - name: Run ruff
       run: uv run ruff check .
 
+  check-skip-tests:
+    name: 🚦 Check for "#no_test" tag
+    runs-on: ubuntu-latest
+    outputs:
+      skip: ${{ steps.detect.outputs.skip }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Detect "#no_test" in last commit
+      id: detect
+      run: |
+        git fetch --unshallow || true
+        LAST_COMMIT=$(git log --no-merges -1 --pretty=%B)
+        echo "Last commit message: $LAST_COMMIT"
+        if [[ "$LAST_COMMIT" == *"#no_test"* ]]; then
+          echo "skip=true" >> $GITHUB_OUTPUT
+        else
+          echo "skip=false" >> $GITHUB_OUTPUT
+        fi
+
   test:
     name: 🧪 Tests on ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    needs: check-skip-tests
+    if: needs.check-skip-tests.outputs.skip != 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -34,7 +55,6 @@ jobs:
         python-version: ["3.10", "3.11", "3.12"]
 
     runs-on: ${{ matrix.os }}
-    if: github.event_name == 'pull_request' || github.event_name == 'push'
     steps:
     - uses: actions/checkout@v4
     - name: Install uv and set up Python
@@ -45,3 +65,13 @@ jobs:
       run: uv sync --locked --all-extras --all-groups
     - name: Run tests
       run: uv run pytest tests
+
+  test-skipped:
+    name: 💤 Tests Skipped
+    needs: check-skip-tests
+    if: needs.check-skip-tests.outputs.skip == 'true'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Notify skip
+      run: |
+        echo "::notice::Tests were skipped because the last commit message contains #no_test"

@@ -5,7 +5,7 @@ from typing import Any
 
 import toml
 
-from resnap import add_metadata, add_metadatas, resnap
+from resnap import add_metadata, add_multiple_metadata, resnap
 
 RESULT_PATH = Path(toml.load("pyproject.toml")["tool"]["resnap"]["output_base_path"])
 
@@ -31,12 +31,12 @@ def add_metadata_test(key: str = "test", value: Any = "value") -> None:
 
 
 @resnap
-def add_metadatas_test() -> None:
-    metadatas = {
+def add_multiple_metadata_test() -> None:
+    metadata = {
         "f": "foo",
         "b": "bar",
     }
-    add_metadatas(metadatas)
+    add_multiple_metadata(metadata)
 
 
 def test_add_metadata() -> None:
@@ -44,8 +44,8 @@ def test_add_metadata() -> None:
     assert get_extra_metadata_in_resnap_file("test") == {"test": "value"}
 
 
-def test_add_metadatas() -> None:
-    add_metadatas_test()
+def test_add_multiple_metadata() -> None:
+    add_multiple_metadata_test()
     assert get_extra_metadata_in_resnap_file("f") == {"f": "foo", "b": "bar"}
 
 
@@ -83,8 +83,8 @@ def run() -> None:
     print("Test passed")
     print("-" * 25)
 
-    print("Running test: execution with add_metadatas")
-    test_add_metadatas()
+    print("Running test: execution with add_multiple_metadata")
+    test_add_multiple_metadata()
     print("Test passed")
     print("-" * 25)
 
