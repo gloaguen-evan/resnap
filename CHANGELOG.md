@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Change hash logic
 - Rename add_metadatas -> add_multiple_metadata
-- Change CI with #no_test tag in commit
+- Change CI with #no_test tag in commit message
 
 ### Fixed
 - Fix config check secret filename if not enabled
