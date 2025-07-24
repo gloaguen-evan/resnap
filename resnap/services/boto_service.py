@@ -8,10 +8,11 @@ import pandas as pd
 
 from ..boto import S3Client, S3Config
 from ..helpers.config import Config
-from ..helpers.constants import EXT, SEPARATOR
+from ..helpers.constants import EXT, META_EXT, SEPARATOR
 from ..helpers.metadata import Metadata
 from ..helpers.status import Status
-from ..helpers.utils import calculate_datetime_from_now, get_datetime_from_filename, load_file
+from ..helpers.time_utils import calculate_datetime_from_now, get_datetime_from_filename
+from ..helpers.utils import load_file
 from .service import ResnapService
 
 
@@ -37,7 +38,7 @@ class BotoResnapService(ResnapService):
 
     def _clear_files(self, files: list[str]) -> list[str]:
         limit_time: datetime = calculate_datetime_from_now(
-            self.config.max_history_files_length, self.config.max_history_files_time_unit,
+            self.config.max_history_files_length, self.config.max_history_files_time_unit, self.config.timezone,
         )
 
         folders: set = set()
@@ -82,7 +83,7 @@ class BotoResnapService(ResnapService):
     def get_success_metadata(self, func_name: str, output_folder: str) -> list[Metadata]:
         files: list[str] = [
             file for file in self._client.list_objects(self._get_output_path(output_folder))
-            if func_name in file and file.endswith(EXT)
+            if func_name in file and file.endswith(META_EXT)
         ]
 
         if not files:

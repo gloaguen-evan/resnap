@@ -1,66 +1,12 @@
 from configparser import SectionProxy
 from dataclasses import dataclass
-from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 import pytest
 
-from resnap.helpers.utils import (
-    TimeUnit,
-    calculate_datetime_from_now,
-    get_datetime_from_filename,
-    hash_arguments,
-    load_file,
-)
-
-
-@pytest.mark.parametrize(
-    "value, unit, delta",
-    [
-        (10, TimeUnit.SECOND, timedelta(seconds=10)),
-        (10, TimeUnit.MINUTE, timedelta(minutes=10)),
-        (10, TimeUnit.HOUR, timedelta(hours=10)),
-        (10, TimeUnit.DAY, timedelta(days=10)),
-        (10, TimeUnit.WEEK, timedelta(weeks=10)),
-    ],
-)
-def test_calculate_datetime_from_now(value: int, unit: TimeUnit, delta: timedelta) -> None:
-    # Given
-    now = datetime.now()
-
-    # When
-    result = calculate_datetime_from_now(value, unit)
-
-    # Then
-    expected = now - delta
-    assert abs((result - expected).total_seconds()) < 1
-
-
-@pytest.mark.parametrize(
-    "filename, expected",
-    [
-        (
-            "toto_2021-01-01T00-00-00.resnap",
-            datetime.fromisoformat("2021-01-01T00:00:00"),
-        ),
-        (
-            Path("toto_2021-01-01T00-00-00.resnap"),
-            datetime.fromisoformat("2021-01-01T00:00:00"),
-        ),
-        (
-            Path("toto/toto_2021-01-01T00-00-00.resnap"),
-            datetime.fromisoformat("2021-01-01T00:00:00"),
-        ),
-    ],
-)
-def test_should_extract_datetime_from_filename(filename: Path | str, expected: datetime) -> None:
-    # When
-    result = get_datetime_from_filename(filename)
-
-    # Then
-    assert result == expected
+from resnap.helpers.utils import hash_arguments, load_file
 
 
 @dataclass

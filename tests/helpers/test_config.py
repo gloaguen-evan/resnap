@@ -1,4 +1,6 @@
+from datetime import timezone
 from typing import Any
+from zoneinfo import ZoneInfo
 
 import pytest
 from pydantic import ValidationError
@@ -68,6 +70,14 @@ class TestConfig:
                 },
                 id="wrong max_history_files_time_unit value",
             ),
+            pytest.param(
+                {
+                    "enabled": True,
+                    "save_to": Services.LOCAL,
+                    "timezone": 4
+                },
+                id="wrong timezone type",
+            ),
         ],
     )
     def test_should_failed_with_wrong_config(self, config: dict[str, Any]) -> None:
@@ -75,12 +85,18 @@ class TestConfig:
         with pytest.raises(ValueError):
             Config(**config)
 
-    def test_should_not_raise_if_not_enabled_and_save_to_is_ceph(self) -> None:
+    def test_should_not_raise_if_not_enabled_and_save_to_is_not_local(self) -> None:
         # Given
-        input_config = {"enabled": False}
+        input_config = {"enabled": False, "save_to": Services.S3}
 
-        # When / Then
-        Config(**input_config)
+        # When
+        config = Config(**input_config)
+
+        # Then
+        assert isinstance(config, Config)
+        assert config.enabled is False
+        assert config.save_to == Services.S3
+        assert config.secrets_file_name == ""
 
     def test_should_raise_if_not_secrets_file_name_and_save_to_is_boto(self) -> None:
         # When / Then
@@ -97,9 +113,35 @@ class TestConfig:
             "enable_remove_old_files": True,
             "max_history_files_length": 5,
             "max_history_files_time_unit": "day",
+            "timezone": None,
         }
+
         # When
         config = Config(**input_config)
 
         # Then
         assert input_config == config.model_dump()
+
+    @pytest.mark.parametrize(
+        "input_timezone, expected_timezone",
+        [
+            (None, None),
+            ("UTC", timezone.utc),
+            ("Europe/Paris", ZoneInfo("Europe/Paris")),
+        ],
+    )
+    def test_should_set_timezone_correctly(
+        self, input_timezone: str | None, expected_timezone: timezone | ZoneInfo | None,
+    ) -> None:
+        # Given
+        input_config = {
+            "enabled": True,
+            "save_to": Services.LOCAL,
+            "timezone": input_timezone,
+        }
+
+        # When
+        config = Config(**input_config)
+
+        # Then
+        assert config.timezone == expected_timezone

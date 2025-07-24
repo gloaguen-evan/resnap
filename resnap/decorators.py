@@ -2,7 +2,7 @@ import functools
 import logging
 from collections.abc import Callable, Coroutine
 from datetime import datetime
-from typing import Any, ParamSpec, TypeVar
+from typing import Any, ParamSpec, TypeVar, overload
 
 from .exceptions import ResnapError
 from .factory import ResnapServiceFactory
@@ -44,7 +44,26 @@ R = TypeVar("R")  # Return type
 P = ParamSpec("P")  # Parameter specification
 
 
-def resnap(_func: Callable[P, R] | None = None, **options: Any) -> Callable[P, R]:
+@overload
+def resnap(
+    _func: Callable[P, R],
+) -> Callable[P, R]: ...
+
+
+@overload
+def resnap(
+    *,
+    output_format: str | None = None,
+    output_folder: str | None = None,
+    enable_recovery: bool = True,
+    consider_args: bool = True,
+    considered_attributes: list[str] | None = None,
+) -> Callable[[Callable[P, R]], Callable[P, R]]: ...
+
+
+def resnap(
+    _func: Callable[P, R] | None = None, **options: Any
+) -> Callable[P, R] | Callable[[Callable[P, R]], Callable[P, R]]:
     """
     Decorator to save the result of a function and return it if the function has been called with the same arguments
     before and the result was saved successfully.
@@ -63,58 +82,81 @@ def resnap(_func: Callable[P, R] | None = None, **options: Any) -> Callable[P, R
         considered_attributes (list[str]): The list of class/instance attributes to consider when hashing the function
             arguments. Warning: Do not use __slots__ in your classes if you want to use this feature.
     """
+    def resnap_decorator(func: Callable[P, R]) -> Callable[P, R]:
+        @functools.wraps(func)
+        def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            service: ResnapService = ResnapServiceFactory.get_service()
+
+            if not service.is_enabled:
+                return func(*args, **kwargs)
+            _clear(service)
+            token = clear_metadata()
+
+            results_retriever = ResultsRetriever(service, options)
+            result, is_recovery = results_retriever.get_results(func, args, kwargs)
+            if is_recovery:
+                return result
+
+            try:
+                logger.debug(f"Executing function {results_retriever.func_name}...")
+                result = func(*args, **kwargs)
+                _save(
+                    service=service,
+                    func_name=results_retriever.func_name,
+                    output_folder=results_retriever.output_folder,
+                    hashed_arguments=results_retriever.hashed_arguments,
+                    result=result,
+                    extra_metadata=get_metadata(),
+                    output_format=options.get("output_format"),
+                )
+                return result
+
+            except Exception as e:
+                service.save_failed_metadata(
+                    func_name=results_retriever.func_name,
+                    output_folder=results_retriever.output_folder,
+                    hashed_arguments=results_retriever.hashed_arguments,
+                    event_time=datetime.now(service.config.timezone),
+                    error_message=str(e),
+                    data=e.data if isinstance(e, ResnapError) else {},
+                    extra_metadata=get_metadata(),
+                )
+                raise e
+            finally:
+                restore_metadata(token)
+
+        return wrapper
+
     if _func is None:
-        return functools.partial(resnap, **options)
+        return resnap_decorator
 
-    @functools.wraps(_func)
-    def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        service: ResnapService = ResnapServiceFactory.get_service()
+    return resnap_decorator(_func)
 
-        if not service.is_enabled:
-            return _func(*args, **kwargs)
-        _clear(service)
-        token = clear_metadata()
 
-        results_retriever = ResultsRetriever(service, options)
-        result, is_recovery = results_retriever.get_results(_func, args, kwargs)
-        if is_recovery:
-            return result
+@overload
+def async_resnap(
+    _func: Callable[P, Coroutine[Any, Any, R]],
+) -> Callable[P, Coroutine[Any, Any, R]]: ...
 
-        try:
-            logger.debug(f"Executing function {results_retriever.func_name}...")
-            result = _func(*args, **kwargs)
-            _save(
-                service=service,
-                func_name=results_retriever.func_name,
-                output_folder=results_retriever.output_folder,
-                hashed_arguments=results_retriever.hashed_arguments,
-                result=result,
-                extra_metadata=get_metadata(),
-                output_format=options.get("output_format"),
-            )
-            return result
 
-        except Exception as e:
-            service.save_failed_metadata(
-                func_name=results_retriever.func_name,
-                output_folder=results_retriever.output_folder,
-                hashed_arguments=results_retriever.hashed_arguments,
-                event_time=datetime.now(),
-                error_message=str(e),
-                data=e.data if isinstance(e, ResnapError) else {},
-                extra_metadata=get_metadata(),
-            )
-            raise e
-        finally:
-            restore_metadata(token)
-
-    return wrapper
+@overload
+def async_resnap(
+    *,
+    output_format: str | None = None,
+    output_folder: str | None = None,
+    enable_recovery: bool = True,
+    consider_args: bool = True,
+    considered_attributes: list[str] | None = None,
+) -> Callable[[Callable[P, Coroutine[Any, Any, R]]], Callable[P, Coroutine[Any, Any, R]]]: ...
 
 
 def async_resnap(
     _func: Callable[P, Coroutine[Any, Any, R]] | None = None,
     **options: Any,
-) -> Callable[P, Coroutine[Any, Any, R]]:
+) -> (
+    Callable[P, Coroutine[Any, Any, R]] |
+    Callable[[Callable[P, Coroutine[Any, Any, R]]], Callable[P, Coroutine[Any, Any, R]]]
+):
     """
     Decorator to save the result of an async function and return it if the function has been called
     with the same arguments before and the result was saved successfully.
@@ -133,49 +175,52 @@ def async_resnap(
         considered_attributes (list[str]): The list of class/instance attributes to consider when hashing the function
             arguments.
     """
+    def async_resnap_decorator(func: Callable[P, Coroutine[Any, Any, R]]) -> Callable[P, Coroutine[Any, Any, R]]:
+        @functools.wraps(func)
+        async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
+            service: ResnapService = ResnapServiceFactory.get_service()
+
+            if not service.is_enabled:
+                return await func(*args, **kwargs)
+            _clear(service)
+            token = clear_metadata()
+
+            results_retriever = ResultsRetriever(service, options)
+            result, is_recovery = results_retriever.get_results(func, args, kwargs)
+            if is_recovery:
+                return result
+
+            try:
+                logger.debug(f"Executing function {results_retriever.func_name}...")
+                result = await func(*args, **kwargs)
+                _save(
+                    service=service,
+                    func_name=results_retriever.func_name,
+                    output_folder=results_retriever.output_folder,
+                    hashed_arguments=results_retriever.hashed_arguments,
+                    result=result,
+                    extra_metadata=get_metadata(),
+                    output_format=options.get("output_format"),
+                )
+                return result
+
+            except Exception as e:
+                service.save_failed_metadata(
+                    func_name=results_retriever.func_name,
+                    output_folder=results_retriever.output_folder,
+                    hashed_arguments=results_retriever.hashed_arguments,
+                    event_time=datetime.now(service.config.timezone),
+                    error_message=str(e),
+                    data=e.data if isinstance(e, ResnapError) else {},
+                    extra_metadata=get_metadata(),
+                )
+                raise e
+            finally:
+                restore_metadata(token)
+
+        return wrapper
+
     if _func is None:
-        return functools.partial(async_resnap, **options)
+        return async_resnap_decorator
 
-    @functools.wraps(_func)
-    async def wrapper(*args: P.args, **kwargs: P.kwargs) -> R:
-        service: ResnapService = ResnapServiceFactory.get_service()
-
-        if not service.is_enabled:
-            return await _func(*args, **kwargs)
-        _clear(service)
-        token = clear_metadata()
-
-        results_retriever = ResultsRetriever(service, options)
-        result, is_recovery = results_retriever.get_results(_func, args, kwargs)
-        if is_recovery:
-            return result
-
-        try:
-            logger.debug(f"Executing function {results_retriever.func_name}...")
-            result = await _func(*args, **kwargs)
-            _save(
-                service=service,
-                func_name=results_retriever.func_name,
-                output_folder=results_retriever.output_folder,
-                hashed_arguments=results_retriever.hashed_arguments,
-                result=result,
-                extra_metadata=get_metadata(),
-                output_format=options.get("output_format"),
-            )
-            return result
-
-        except Exception as e:
-            service.save_failed_metadata(
-                func_name=results_retriever.func_name,
-                output_folder=results_retriever.output_folder,
-                hashed_arguments=results_retriever.hashed_arguments,
-                event_time=datetime.now(),
-                error_message=str(e),
-                data=e.data if isinstance(e, ResnapError) else {},
-                extra_metadata=get_metadata(),
-            )
-            raise e
-        finally:
-            restore_metadata(token)
-
-    return wrapper
+    return async_resnap_decorator(_func)

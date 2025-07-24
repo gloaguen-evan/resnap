@@ -23,6 +23,8 @@ chmod +x scripts/*.sh
 ./scripts/run_functional_tests.sh
 ````
 
+💡Want to skip CI tests for your PR? Just pop #no_test in your commit message!
+
 ## 📝 Updating the Changelog
 
 Please update the CHANGELOG.md file in your pull request with a short summary of the changes.
@@ -33,6 +35,9 @@ Please update the CHANGELOG.md file in your pull request with a short summary of
 
 ### Changed
 - What i changed in my pull request
+
+### Changed
+- What i fixed in my pull request
 
 ## 🔒 Tag Protection
 ⚠️ Git tags starting with v (e.g. v1.2.3) are protected and can only be pushed by the project maintainer.

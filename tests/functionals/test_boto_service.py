@@ -58,7 +58,7 @@ def execution_no_previous_save() -> list[str]:
 
 def execution_with_previous_save_same_config(last_generated_files: list[str]) -> None:
     generated_files = execution_no_previous_save()
-    assert sorted(generated_files) == sorted(last_generated_files), "Don't use checkpoint"
+    assert sorted(generated_files) == sorted(last_generated_files), "Don't use resnap"
 
 
 def execution_with_previous_save_different_config(last_generated_files: list[str]) -> list[str]:
@@ -88,7 +88,7 @@ def execution_with_previous_save_different_config(last_generated_files: list[str
 
     assert len(generated_files) == len(FILES) * 4, "Not all files were generated"
     assert len(new_files) == len(FILES) * 2, "Not all files were generated"
-    assert sorted(new_files) != sorted(last_generated_files), "Don't use checkpoint"
+    assert sorted(new_files) != sorted(last_generated_files), "Don't use resnap"
     return new_files
 
 
