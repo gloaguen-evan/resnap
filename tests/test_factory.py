@@ -11,7 +11,7 @@ from resnap.helpers.utils import TimeUnit
 from resnap.services.boto_service import BotoResnapService
 from resnap.services.local_service import LocalResnapService
 from resnap.services.service import ResnapService
-from resnap.settings import get_config_data
+
 
 fake_config_toml = """
 [tool.resnap]
@@ -90,7 +90,7 @@ def test_should_not_set_service_if_not_resnap_service() -> None:
 
 def test_should_raise_if_service_if_not_implemented() -> None:
     # Given
-    factory.get_config() # enforce the first load
+    factory.get_config()  # enforce the first load
     factory._resnap_config.save_to = "not_implemented"
 
     # When / Then
@@ -129,7 +129,7 @@ s3_secrets = {
 @patch("resnap.services.boto_service.load_file", return_value=s3_secrets)
 def test_should_return_boto_service_with_boto_extra(mock_find_spec: MagicMock, mock_load_file: MagicMock) -> None:
     # Given
-    factory.get_config() # enforce the first load
+    factory.get_config()  # enforce the first load
     factory._resnap_config.save_to = "s3"
 
     # When
@@ -143,7 +143,7 @@ def test_should_return_boto_service_with_boto_extra(mock_find_spec: MagicMock, m
 @patch("resnap.services.boto_service.load_file", return_value=s3_secrets)
 def test_should_raise_without_boto_extra(mock_find_spec: MagicMock, mock_load_file: MagicMock) -> None:
     # Given
-    factory.get_config() # enforce the first load
+    factory.get_config()  # enforce the first load
     factory._resnap_config.save_to = "s3"
 
     if "resnap.services.boto_service" in sys.modules:
