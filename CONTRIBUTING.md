@@ -38,7 +38,7 @@ Please update the CHANGELOG.md file in your pull request with a short summary of
 ### Changed
 - What i changed in my pull request
 
-### Changed
+### Fixed
 - What i fixed in my pull request
 
 ## 🔒 Tag Protection
