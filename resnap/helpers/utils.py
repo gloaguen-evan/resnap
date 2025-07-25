@@ -2,15 +2,11 @@ import hashlib
 import json
 from configparser import ConfigParser, SectionProxy
 from dataclasses import asdict, is_dataclass
-from datetime import datetime, timedelta
 from enum import Enum
-from pathlib import Path
 from typing import Any
 
 import pandas as pd
 import yaml
-
-from .constants import EXT
 
 
 class Extensions(str, Enum):
@@ -19,57 +15,6 @@ class Extensions(str, Enum):
     CFG = ".cfg"
     INI = ".ini"
     JSON = ".json"
-
-
-class TimeUnit(str, Enum):
-    SECOND = "second"
-    MINUTE = "minute"
-    HOUR = "hour"
-    DAY = "day"
-    WEEK = "week"
-
-
-def calculate_datetime_from_now(value: int, unit: TimeUnit) -> datetime:
-    """
-    Calculate datetime from now based on the given value and unit.
-
-    Args:
-        value (int): The value to calculate the datetime from now.
-        unit (TimeUnit): The unit to calculate the datetime from now.
-    Returns:
-        datetime: The calculated datetime from now.
-    """
-    now = datetime.now()
-
-    if unit == TimeUnit.SECOND:
-        delta = timedelta(seconds=value)
-    elif unit == TimeUnit.MINUTE:
-        delta = timedelta(minutes=value)
-    elif unit == TimeUnit.HOUR:
-        delta = timedelta(hours=value)
-    elif unit == TimeUnit.DAY:
-        delta = timedelta(days=value)
-    elif unit == TimeUnit.WEEK:
-        delta = timedelta(weeks=value)
-    else:  # pragma: no cover
-        pass
-
-    return now - delta
-
-
-def get_datetime_from_filename(filename: Path | str) -> datetime:
-    """
-    Get datetime from the given filename.
-
-    Args:
-        filename (Path | str): The filename to get the datetime from.
-    Returns:
-        datetime: The datetime from the given filename.
-    """
-    filename_without_ext: str = str(filename).split(EXT)[0]
-    extract_day, extract_time = filename_without_ext.split("_")[-1].split("T")
-    extract_time = extract_time.replace("-", ":")
-    return datetime.fromisoformat(f"{extract_day}T{extract_time}")
 
 
 def make_json_serializable(obj: Any) -> Any:
@@ -83,28 +28,36 @@ def make_json_serializable(obj: Any) -> Any:
     Returns:
         Any: The JSON-serializable representation of the object.
     """
-    if isinstance(obj, pd.DataFrame):
-        # Sort DataFrame by index and columns to ensure stable output
-        # and reset index to avoid issues with non-serializable index types
-        df = obj.sort_index(axis=1).sort_index().reset_index(drop=True)
-        return df.to_dict(orient="records")  # Stable, JSON-compatible format
-    elif is_dataclass(obj):
-        return make_json_serializable(asdict(obj))
-    elif isinstance(obj, dict):
-        return {str(k): make_json_serializable(v) for k, v in sorted(obj.items())}
-    elif isinstance(obj, list):
-        return [make_json_serializable(v) for v in obj]
-    elif isinstance(obj, tuple):
-        return tuple(make_json_serializable(v) for v in obj)
-    elif isinstance(obj, set):
-        return sorted(make_json_serializable(v) for v in obj)
-    elif isinstance(obj, (int, float, str, bool)) or obj is None:
-        return obj
-    else:
-        try:
-            return make_json_serializable(vars(obj))
-        except TypeError:
-            return str(obj)
+    match obj:
+        case pd.DataFrame():
+            # Sort DataFrame by index and columns to ensure stable output
+            # and reset index to avoid issues with non-serializable index types
+            df = obj.sort_index(axis=1).sort_index().reset_index(drop=True)
+            return make_json_serializable(df.to_dict(orient="records"))  # Stable, JSON-compatible format
+
+        case _ if is_dataclass(obj):
+            return make_json_serializable(asdict(obj))
+
+        case dict():
+            return {str(k): make_json_serializable(v) for k, v in sorted(obj.items())}
+
+        case list():
+            return [make_json_serializable(v) for v in obj]
+
+        case tuple():
+            return tuple(make_json_serializable(v) for v in obj)
+
+        case set():
+            return sorted(make_json_serializable(v) for v in obj)
+
+        case int() | float() | str() | bool() | None:
+            return obj
+
+        case _:
+            try:
+                return make_json_serializable(vars(obj))
+            except TypeError:
+                return str(obj)
 
 
 def hash_arguments(args: dict[str, Any]) -> str:

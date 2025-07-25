@@ -6,17 +6,17 @@ from typing import Any
 
 import pandas as pd
 
-from ..helpers.constants import EXT
+from ..helpers.constants import EXT, META_EXT
 from ..helpers.metadata import Metadata
 from ..helpers.status import Status
-from ..helpers.utils import calculate_datetime_from_now, get_datetime_from_filename
+from ..helpers.time_utils import calculate_datetime_from_now, get_datetime_from_filename
 from .service import ResnapService
 
 
 class LocalResnapService(ResnapService):
     def clear_old_saves(self) -> None:
         limit_time: datetime = calculate_datetime_from_now(
-            self.config.max_history_files_length, self.config.max_history_files_time_unit,
+            self.config.max_history_files_length, self.config.max_history_files_time_unit, self.config.timezone,
         )
         folders: set[Path] = set()
         for f in Path(self.config.output_base_path).rglob("*"):
@@ -44,8 +44,8 @@ class LocalResnapService(ResnapService):
 
     def get_success_metadata(self, func_name: str, output_folder: str) -> list[Metadata]:
         files: list[Path] = [
-            Path(x) for x in Path(self._get_output_path(output_folder)).rglob(f"*{EXT}*")
-            if x.is_file() and func_name in x.name and x.suffix == EXT
+            Path(x) for x in Path(self._get_output_path(output_folder)).rglob(f"*{META_EXT}*")
+            if x.is_file() and func_name in x.name
         ]
 
         if not files:

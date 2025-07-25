@@ -15,7 +15,7 @@ from tests.builders.metadata_builder import MetadataFailBuilder, MetadataSuccess
 
 
 @pytest.fixture(autouse=True)
-def mock_service(mocker) -> None:
+def mock_service(mocker) -> MagicMock:
     mock: MagicMock = mocker.patch("resnap.decorators.ResnapServiceFactory.get_service", return_value=MagicMock())
     return mock
 
@@ -249,6 +249,7 @@ def test_should_raise_error_sync(
     # Given
     mock_service.return_value.is_enabled = True
     mock_service.return_value.get_success_metadata.return_value = []
+    mock_service.return_value.config.timezone = None
 
     # When
     with pytest.raises(error_type, match=re.escape(error_message)):
@@ -418,6 +419,7 @@ async def test_should_raise_error_async(
     # Given
     mock_service.return_value.is_enabled = True
     mock_service.return_value.get_success_metadata.return_value = []
+    mock_service.return_value.config.timezone = None
 
     # When
     with pytest.raises(error_type, match=re.escape(error_message)):

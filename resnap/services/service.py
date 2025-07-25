@@ -5,7 +5,7 @@ from typing import Any
 import pandas as pd
 
 from ..helpers.config import Config
-from ..helpers.constants import EXT, SEPARATOR
+from ..helpers.constants import EXT, META_EXT, SEPARATOR
 from ..helpers.metadata import Metadata, MetadataFail, MetadataSuccess
 from ..helpers.singleton import SingletonABCMeta
 from ..helpers.status import Status
@@ -35,7 +35,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
             parts.append(self.config.output_base_path)
         if output_folder:
             parts.append(output_folder)
-        parts.append(f"{func_name}_{event_time.isoformat().replace(':', '-')}{EXT}")
+        parts.append(f"{func_name}_{event_time.isoformat().replace(':', '-')}{META_EXT}")
         return SEPARATOR.join(parts)
 
     def result_path(self, func_name: str, event_time: datetime, output_folder: str, output_ext: str) -> str:
@@ -275,7 +275,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
         Returns:
             tuple[str, datetime]: The result path and event time.
         """
-        if type(result) is pd.DataFrame:
+        if isinstance(result, pd.DataFrame):
             if output_format == "csv":
                 func = self._save_dataframe_to_csv
             else:
@@ -289,7 +289,7 @@ class ResnapService(ABC, metaclass=SingletonABCMeta):
             output_format = "pkl"
             func = self._save_to_pickle
 
-        event_time: datetime = datetime.now()
+        event_time: datetime = datetime.now(self.config.timezone)
         result_path = self.result_path(func_name, event_time, output_folder, output_format)
         func(result=result, result_path=result_path)
         return result_path, event_time

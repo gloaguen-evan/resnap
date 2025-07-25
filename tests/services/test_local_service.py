@@ -2,14 +2,19 @@ from datetime import datetime
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import freezegun
 import pandas as pd
 import pytest
 
+from resnap.helpers.constants import EXT, META_EXT
 from resnap.helpers.metadata import Metadata, MetadataSuccess
 from resnap.helpers.status import Status
+from resnap.helpers.time_utils import TimeUnit
 from resnap.helpers.utils import hash_arguments
 from resnap.services.local_service import LocalResnapService
 from tests.builders.config_builder import ConfigBuilder
+
+MOCK_NOW = datetime(year=2025, month=7, day=15, hour=6)
 
 
 @pytest.fixture
@@ -44,10 +49,10 @@ class TestLocalService:
         "file_path, is_file, is_deleted",
         [
             ("toto", False, False),
-            ("test_2021-01-01T00-00-00.resnap", True, True),
-            ("test_2021-01-01T00-00-00.resnap.pkl", True, True),
+            (f"test_2021-01-01T00-00-00{META_EXT}", True, True),
+            (f"test_2021-01-01T00-00-00{EXT}.pkl", True, True),
             ("toto/toto_2021-01-01T00-00-00.csv", True, False),
-            (f"test_{datetime.now().isoformat().replace(':', '-')}.resnap", True, False),
+            (f"test_{datetime.now().isoformat().replace(':', '-')}{META_EXT}", True, False),
         ],
     )
     def test_should_clear_old_saves(
@@ -70,7 +75,7 @@ class TestLocalService:
         assert mock_file.unlink.call_count == int(is_deleted)
 
     def test_clear_old_saves_should_delete_empty_folder(
-        self, mock_path_rglob: MagicMock
+        self, mock_path_rglob: MagicMock,
     ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
@@ -86,7 +91,7 @@ class TestLocalService:
         mock_file.rmdir.assert_called_once()
 
     def test_clear_old_saves_should_not_delete_unempty_folder(
-        self, mock_path_rglob: MagicMock
+        self, mock_path_rglob: MagicMock,
     ) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
@@ -101,13 +106,43 @@ class TestLocalService:
         assert mock_file.unlink.call_count == 0
         mock_file.rmdir.assert_not_called()
 
+    @pytest.mark.parametrize("nb_days_cached", [1, 2, 5, 10])
+    @freezegun.freeze_time(MOCK_NOW)
+    def test_service_clears_only_expired_saves_based_on_day_threshold(
+        self,
+        nb_days_cached: int,
+        mock_path_rglob: MagicMock,
+    ) -> None:
+        # Given
+        config = (
+            ConfigBuilder.a_config()
+            .with_max_history_files_length(nb_days_cached)
+            .with_max_history_files_time_unit(TimeUnit.DAY)
+            .build()
+        )
+        service = LocalResnapService(config=config)
+
+        expired_date = MOCK_NOW.replace(hour=MOCK_NOW.hour + 2, day=MOCK_NOW.day - nb_days_cached)
+        not_expired_date = MOCK_NOW.replace(hour=MOCK_NOW.hour - 2)
+
+        expired_file = get_mock_path_file(f"test_days_{expired_date.isoformat()}{META_EXT}", True)
+        cached_file = get_mock_path_file(f"test_days_{not_expired_date.isoformat()}{META_EXT}", True)
+
+        mock_path_rglob.return_value = [expired_file, cached_file]
+
+        # When
+        service.clear_old_saves()
+
+        # Then
+        expired_file.unlink.assert_called_once()
+
     def test_should_read_metadata(self) -> None:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         expected_metadata = MetadataSuccess(
             status=Status.SUCCESS,
             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-            result_path="test_2021-01-01T00-00-00.resnap.pkl",
+            result_path=f"test_2021-01-01T00-00-00{EXT}.pkl",
             result_type="str",
             hashed_arguments=self.hashed_arguments,
             extra_metadata={},
@@ -115,7 +150,7 @@ class TestLocalService:
 
         # When
         result = service._read_metadata(
-            "tests/data/metadata/test-metadata_2021-01-01T00-00-00.resnap"
+            f"tests/data/metadata/test-metadata_2021-01-01T00-00-00{META_EXT}"
         )
 
         # Then
@@ -126,11 +161,10 @@ class TestLocalService:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         mock_path_rglob.return_value = [
-            Path("tests/data/metadata/test-metadata_2021-01-01T00-00-00.resnap"),
-            Path("tests/data/metadata/test-metadata_2024-01-01T00-00-00.resnap"),
-            get_mock_path_file("toto", False),
-            get_mock_path_file("toto_2021-01-02T00-00-00.resnap", True),
-            get_mock_path_file("test.csv", True),
+            Path(f"tests/data/metadata/test-metadata_2021-01-01T00-00-00{META_EXT}"),
+            Path(f"tests/data/metadata/test-metadata_2024-01-01T00-00-00{META_EXT}"),
+            get_mock_path_file(f"toto{META_EXT}", False),
+            get_mock_path_file(f"toto_2021-01-02T00-00-00{META_EXT}", True),
         ]
 
         # When
@@ -141,7 +175,7 @@ class TestLocalService:
             MetadataSuccess(
                 status=Status.SUCCESS,
                 event_time=datetime.fromisoformat("2024-01-01T00:00:00"),
-                result_path="test_2024-01-01T00-00-00.resnap.pkl",
+                result_path=f"test_2024-01-01T00-00-00{EXT}.pkl",
                 result_type="str",
                 hashed_arguments=hash_arguments({}),
                 extra_metadata={},
@@ -149,7 +183,7 @@ class TestLocalService:
             MetadataSuccess(
                 status=Status.SUCCESS,
                 event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-                result_path="test_2021-01-01T00-00-00.resnap.pkl",
+                result_path=f"test_2021-01-01T00-00-00{EXT}.pkl",
                 result_type="str",
                 hashed_arguments=self.hashed_arguments,
                 extra_metadata={},
@@ -179,13 +213,13 @@ class TestLocalService:
         metadata = MetadataSuccess(
             status=Status.SUCCESS,
             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-            result_path="test_2021-01-01T00-00-00.resnap.pkl",
+            result_path=f"test_2021-01-01T00-00-00{EXT}.pkl",
             result_type="str",
             hashed_arguments=self.hashed_arguments,
         )
 
         # When
-        service._write_metadata("test_2021-01-01T00-00-00.resnap", metadata)
+        service._write_metadata(f"test_2021-01-01T00-00-00{META_EXT}", metadata)
 
         # Then
         mock_open.assert_called_once()

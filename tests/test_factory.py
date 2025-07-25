@@ -1,5 +1,7 @@
 import re
 import sys
+from pathlib import Path
+from typing import Generator
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -7,11 +9,10 @@ import pytest_mock
 
 from resnap import factory
 from resnap.helpers.config import Config, Services
-from resnap.helpers.utils import TimeUnit
+from resnap.helpers.time_utils import TimeUnit
 from resnap.services.boto_service import BotoResnapService
 from resnap.services.local_service import LocalResnapService
 from resnap.services.service import ResnapService
-
 
 fake_config_toml = """
 [tool.resnap]
@@ -38,14 +39,8 @@ def fake_config() -> Config:
     )
 
 
-@pytest.fixture(autouse=True)
-def reset_factory_globals() -> None:
-    factory._resnap_config = None
-    factory._service = None
-
-
 @pytest.fixture
-def mock_custom_config_location(tmp_path, mocker: pytest_mock.MockFixture):
+def mock_custom_config_location(tmp_path: Path, mocker: pytest_mock.MockFixture) -> Generator[None, None, None]:
     fake_config_path = tmp_path / "pyproject.toml"
     fake_config_path.write_text(fake_config_toml)
     mocker.patch.dict(
@@ -56,7 +51,10 @@ def mock_custom_config_location(tmp_path, mocker: pytest_mock.MockFixture):
     mocker.patch.dict("os.environ", clear=True)
 
 
-def test_get_config_test_should_read_config_from_custom_location(mock_custom_config_location, fake_config):
+def test_get_config_test_should_read_config_from_custom_location(
+    mock_custom_config_location: Generator[None, None, None],
+    fake_config: Config,
+) -> None:
     # When
     res = factory.get_config()
 

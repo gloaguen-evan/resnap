@@ -1,9 +1,11 @@
+import datetime
 from enum import Enum
+from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from typing_extensions import Self
 
-from .utils import TimeUnit
+from .time_utils import TimeUnit, get_timezone_from_string
 
 
 class Services(str, Enum):
@@ -12,6 +14,8 @@ class Services(str, Enum):
 
 
 class Config(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     enabled: bool
     save_to: Services = Services.LOCAL
     output_base_path: str = ""
@@ -19,6 +23,13 @@ class Config(BaseModel):
     enable_remove_old_files: bool = False
     max_history_files_length: int = Field(gt=0, default=3)
     max_history_files_time_unit: TimeUnit = TimeUnit.DAY
+    timezone: datetime.timezone | ZoneInfo | None = None
+
+    @field_validator("timezone", mode="before")
+    def validate_timezone(cls, value: str | datetime.timezone | None) -> datetime.timezone | ZoneInfo | None:
+        if not isinstance(value, str):
+            return value
+        return get_timezone_from_string(value)
 
     @model_validator(mode="after")
     def check_secrets_file_name(self) -> Self:

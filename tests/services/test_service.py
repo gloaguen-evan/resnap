@@ -6,17 +6,12 @@ import freezegun
 import pandas as pd
 import pytest
 
+from resnap.helpers.constants import EXT, META_EXT
 from resnap.helpers.metadata import MetadataFail, MetadataSuccess
-from resnap.helpers.singleton import SingletonABCMeta
 from resnap.helpers.status import Status
 from resnap.helpers.utils import hash_arguments
 from resnap.services.local_service import LocalResnapService
 from tests.builders.config_builder import ConfigBuilder
-
-
-@pytest.fixture(autouse=True)
-def reset_singletons() -> None:
-    SingletonABCMeta._instances = {}
 
 
 @pytest.fixture(autouse=True)
@@ -129,9 +124,9 @@ class TestServicce:
     @pytest.mark.parametrize(
         "output_path, output_folder, expected",
         [
-            ("", "", "test_2021-01-01T00-00-00.resnap"),
-            ("output", "", "output/test_2021-01-01T00-00-00.resnap"),
-            ("output", "test", "output/test/test_2021-01-01T00-00-00.resnap"),
+            ("", "", f"test_2021-01-01T00-00-00{META_EXT}"),
+            ("output", "", f"output/test_2021-01-01T00-00-00{META_EXT}"),
+            ("output", "test", f"output/test/test_2021-01-01T00-00-00{META_EXT}"),
         ],
     )
     def test_should_return_metadata_path(
@@ -153,9 +148,9 @@ class TestServicce:
     @pytest.mark.parametrize(
         "output_path, output_folder, expected",
         [
-            ("", "", "test_2021-01-01T00-00-00.resnap.ext"),
-            ("output", "", "output/test_2021-01-01T00-00-00.resnap.ext"),
-            ("output", "test", "output/test/test_2021-01-01T00-00-00.resnap.ext"),
+            ("", "", f"test_2021-01-01T00-00-00{EXT}.ext"),
+            ("output", "", f"output/test_2021-01-01T00-00-00{EXT}.ext"),
+            ("output", "test", f"output/test/test_2021-01-01T00-00-00{EXT}.ext"),
         ],
     )
     def test_should_return_result_path(
@@ -177,19 +172,19 @@ class TestServicce:
     @pytest.mark.parametrize(
         "result_path, expected_mock, result_type",
         [
-            ("test_2021-01-01T00-00-00.resnap.pkl", "mock_read_pickle", "str"),
+            (f"test_2021-01-01T00-00-00{EXT}.pkl", "mock_read_pickle", "str"),
             (
-                "test_2021-01-01T00-00-00.resnap.parquet.gz",
+                f"test_2021-01-01T00-00-00{EXT}.parquet.gz",
                 "mock_read_parquet_to_dataframe",
                 "pd.DataFrame",
             ),
             (
-                "test_2021-01-01T00-00-00.resnap.csv",
+                f"test_2021-01-01T00-00-00{EXT}.csv",
                 "mock_read_csv_to_dataframe",
                 "pd.DataFrame",
             ),
-            ("test_2021-01-01T00-00-00.resnap.txt", "mock_read_text", "str"),
-            ("test_2021-01-01T00-00-00.resnap.json", "mock_read_json", "str"),
+            (f"test_2021-01-01T00-00-00{EXT}.txt", "mock_read_text", "str"),
+            (f"test_2021-01-01T00-00-00{EXT}.json", "mock_read_json", "str"),
         ],
     )
     def test_should_read_result(
@@ -234,7 +229,7 @@ class TestServicce:
             status=Status.SUCCESS,
             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
             hashed_arguments=hash_arguments({}),
-            result_path="test_2021-01-01T00-00-00.resnap.txt",
+            result_path=f"test_2021-01-01T00-00-00{EXT}.txt",
             result_type=result_type,
         )
         mock_read_text.return_value = str(result)
@@ -248,8 +243,8 @@ class TestServicce:
     @pytest.mark.parametrize(
         "result_path, result_type",
         [
-            ("test_2021-01-01T00-00-00.resnap.toto", "str"),
-            ("test_2021-01-01T00-00-00.resnap.toto", "pd.DataFrame"),
+            (f"test_2021-01-01T00-00-00{EXT}.toto", "str"),
+            (f"test_2021-01-01T00-00-00{EXT}.toto", "pd.DataFrame"),
         ],
     )
     def test_should_raise_not_implemented_error_when_reading_unknown_result_type(
@@ -326,7 +321,7 @@ class TestServicce:
         expected_event_time: datetime = datetime.fromisoformat("2021-01-01T00:00:00")
         output_path = f"{output_folder}/" if output_folder else ""
         expected_result_path: str = (
-            f"{output_path}test_2021-01-01T00-00-00.resnap.{expected_result_ext}"
+            f"{output_path}test_2021-01-01T00-00-00{EXT}.{expected_result_ext}"
         )
 
         # When
@@ -345,7 +340,7 @@ class TestServicce:
         # Given
         service = LocalResnapService(config=ConfigBuilder.a_config().build())
         expected_event_time: datetime = datetime.fromisoformat("2021-01-01T00:00:00")
-        expected_result_path: str = "test_2021-01-01T00-00-00.resnap.pkl"
+        expected_result_path: str = f"test_2021-01-01T00-00-00{EXT}.pkl"
         metadata = MetadataSuccess(
             status=Status.SUCCESS,
             event_time=expected_event_time,
@@ -368,7 +363,7 @@ class TestServicce:
 
         # Then
         mock_write_metadata.assert_called_once_with(
-            "test_2021-01-01T00-00-00.resnap", metadata
+            f"test_2021-01-01T00-00-00{META_EXT}", metadata
         )
 
     def test_should_save_failed_metadata(self, mock_write_metadata: MagicMock) -> None:
@@ -397,7 +392,7 @@ class TestServicce:
 
         # Then
         mock_write_metadata.assert_called_once_with(
-            "test_2021-01-01T00-00-00.resnap",
+            f"test_2021-01-01T00-00-00{META_EXT}",
             metadata,
         )
 

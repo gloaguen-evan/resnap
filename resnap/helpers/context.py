@@ -1,56 +1,56 @@
 from contextvars import ContextVar, Token
 from typing import Any
 
-_checkpoint_metadata: ContextVar[dict] = ContextVar("_checkpoint_metadata", default={})
+_resnap_metadata: ContextVar[dict] = ContextVar("_resnap_metadata", default={})
 
 
 def add_metadata(key: str, value: Any) -> None:
     """
-    Add metadata to the checkpoint context.
+    Add metadata to the resnap context.
 
     Args:
         key (str): The key for the metadata.
         value (Any): The value for the metadata.
     """
-    metadata = _checkpoint_metadata.get()
+    metadata = _resnap_metadata.get()
     metadata[key] = value
-    _checkpoint_metadata.set(metadata)
+    _resnap_metadata.set(metadata)
 
 
 def add_multiple_metadata(metadata: dict[str, Any]) -> None:
     """
-    Add multiple metadata to the checkpoint context.
+    Add multiple metadata to the resnap context.
 
     Args:
         metadata (dict): The metadata to add.
     """
-    current_metadata = _checkpoint_metadata.get()
+    current_metadata = _resnap_metadata.get()
     current_metadata.update(metadata)
-    _checkpoint_metadata.set(current_metadata)
+    _resnap_metadata.set(current_metadata)
 
 
 def get_metadata() -> dict:
     """
-    Get the metadata from the checkpoint context.
+    Get the metadata from the resnap context.
 
     Returns:
-        dict: The metadata from the checkpoint context.
+        dict: The metadata from the resnap context.
     """
-    return _checkpoint_metadata.get()
+    return _resnap_metadata.get()
 
 
 def clear_metadata() -> Token:
     """
-    Clear the metadata from the checkpoint context.
+    Clear the metadata from the resnap context.
     """
-    return _checkpoint_metadata.set({})
+    return _resnap_metadata.set({})
 
 
 def restore_metadata(token: Token) -> None:
     """
-    Restore the metadata in the checkpoint context.
+    Restore the metadata in the resnap context.
 
     Args:
         token (Token): The token to restore the metadata.
     """
-    _checkpoint_metadata.reset(token)
+    _resnap_metadata.reset(token)

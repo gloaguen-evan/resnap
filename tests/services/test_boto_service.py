@@ -6,6 +6,7 @@ from unittest.mock import ANY, MagicMock
 import pandas as pd
 import pytest
 
+from resnap.helpers.constants import EXT, META_EXT
 from resnap.helpers.metadata import Metadata, MetadataSuccess
 from resnap.helpers.status import Status
 from resnap.helpers.utils import hash_arguments
@@ -100,10 +101,10 @@ class TestBotoService:
     @pytest.mark.parametrize(
         "file_path, is_deleted",
         [
-            ("test_2021-01-01T00-00-00.resnap", True),
-            ("test_2021-01-01T00-00-00.resnap.pkl", True),
+            (f"test_2021-01-01T00-00-00{META_EXT}", True),
+            (f"test_2021-01-01T00-00-00{EXT}.pkl", True),
             ("toto/toto_2021-01-01T00-00-00.csv", False),
-            (f"test_{datetime.now().isoformat().replace(':', '-')}.resnap", False),
+            (f"test_{datetime.now().isoformat().replace(':', '-')}{META_EXT}", False),
         ],
     )
     def test_should_clear_old_saves_files(
@@ -180,7 +181,7 @@ class TestBotoService:
         expected_metadata = MetadataSuccess(
             status=Status.SUCCESS,
             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-            result_path="test_2021-01-01T00-00-00.resnap.pkl",
+            result_path=f"test_2021-01-01T00-00-00{EXT}.pkl",
             result_type="str",
             hashed_arguments=hash_arguments({"test": "toto"}),
             extra_metadata={},
@@ -190,7 +191,7 @@ class TestBotoService:
         )
 
         # When
-        result = service._read_metadata("tests/data/metadata/test-metadata_2021-01-01T00-00-00.resnap")
+        result = service._read_metadata(f"tests/data/metadata/test-metadata_2021-01-01T00-00-00{META_EXT}")
 
         # Then
         assert isinstance(result, Metadata)
@@ -204,24 +205,24 @@ class TestBotoService:
         # Given
         service = BotoResnapService(ConfigBuilder.a_config().build())
         mock_s3_client_list_objects.return_value = [
-            "test-metadata_2021-01-01T00-00-00.resnap",
-            "test-metadata_2024-01-01T00-00-00.resnap",
+            f"test-metadata_2021-01-01T00-00-00{META_EXT}",
+            f"test-metadata_2024-01-01T00-00-00{META_EXT}",
             "toto",
-            "toto_2021-01-02T00-00-00.resnap",
+            f"toto_2021-01-02T00-00-00{META_EXT}",
             "test.csv",
         ]
         expected_metadata = [
             MetadataSuccess(
                 status=Status.SUCCESS,
                 event_time=datetime.fromisoformat("2024-01-01T00:00:00"),
-                result_path="test_2024-01-01T00-00-00.resnap.pkl",
+                result_path=f"test_2024-01-01T00-00-00{EXT}.pkl",
                 result_type="str",
                 hashed_arguments=hash_arguments({}),
             ),
             MetadataSuccess(
                 status=Status.SUCCESS,
                 event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-                result_path="test_2021-01-01T00-00-00.resnap.pkl",
+                result_path=f"test_2021-01-01T00-00-00{EXT}.pkl",
                 result_type="str",
                 hashed_arguments=hash_arguments({}),
             ),
@@ -252,7 +253,7 @@ class TestBotoService:
         metadata = MetadataSuccess(
             status=Status.SUCCESS,
             event_time=datetime.fromisoformat("2021-01-01T00:00:00"),
-            result_path="test_2021-01-01T00-00-00.resnap.pkl",
+            result_path=f"test_2021-01-01T00-00-00{EXT}.pkl",
             result_type="str",
             hashed_arguments=hash_arguments({"test": "toto"}),
         )
@@ -261,12 +262,12 @@ class TestBotoService:
         )
 
         # When
-        service._write_metadata("test_2021-01-01T00-00-00.resnap", metadata)
+        service._write_metadata(f"test_2021-01-01T00-00-00{META_EXT}", metadata)
 
         # Then
         mock_s3_client_upload_file.assert_called_once()
         args, _ = mock_s3_client_upload_file.call_args
-        assert args[1] == "test_2021-01-01T00-00-00.resnap"
+        assert args[1] == f"test_2021-01-01T00-00-00{META_EXT}"
 
     def test_should_save_dataframe_to_parquet(self, mock_s3_client_push_df_to_file: MagicMock) -> None:
         # Given

@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from typing_extensions import Self
 
 from resnap.helpers.config import Config, Services
-from resnap.helpers.utils import TimeUnit
+from resnap.helpers.time_utils import TimeUnit
 
 
 @dataclass
