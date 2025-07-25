@@ -35,14 +35,18 @@ def get_config_data(file_path: str | None = None) -> Config:
         return Config(enabled=True)
 
 
-def get_config_file_path() -> str:
+def get_config_file_path(base_path: str | None = None) -> str:
     """
     Get the path to the configuration file.
+
+    Args:
+        base_path (str | None): Base path to search for the configuration file.
+            If None, it will use the current working directory.
 
     Returns:
         str: Path to the configuration file.
     """
-    exec_path: str = os.getcwd()
+    exec_path: str = base_path or os.getcwd()
     for file_name in CONFIG_SECTIONS:
         if file_name in os.listdir(exec_path):
             return os.path.join(exec_path, file_name)
