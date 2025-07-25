@@ -8,6 +8,8 @@ Thank you for considering contributing to this project!
 - Write clear and meaningful commit messages.
 - Add tests if relevant.
 - Update documentation if needed (README, comments, docstrings, etc.).
+- Update Changelog (see section below)
+- Update version in /resnap/version.py
 
 ## 🧪 Linting & Testing
 
