@@ -3,18 +3,65 @@ import sys
 from unittest.mock import MagicMock, patch
 
 import pytest
+import pytest_mock
 
 from resnap import factory
+from resnap.helpers.config import Config, Services
+from resnap.helpers.utils import TimeUnit
 from resnap.services.boto_service import BotoResnapService
 from resnap.services.local_service import LocalResnapService
 from resnap.services.service import ResnapService
-from resnap.settings import get_config_data
+
+
+fake_config_toml = """
+[tool.resnap]
+enabled = true
+save_to = "s3"
+output_base_path = "output"
+secrets_file_name = "my-secret.yml"
+enable_remove_old_files = false
+max_history_files_length = 10
+max_history_files_time_unit = "day"
+"""
+
+
+@pytest.fixture
+def fake_config() -> Config:
+    return Config(
+        enabled=True,
+        save_to=Services.S3,
+        output_base_path="output",
+        secrets_file_name="my-secret.yml",
+        enable_remove_old_files=False,
+        max_history_files_length=10,
+        max_history_files_time_unit=TimeUnit.DAY,
+    )
 
 
 @pytest.fixture(autouse=True)
 def reset_factory_globals() -> None:
-    factory._resnap_config = get_config_data()
+    factory._resnap_config = None
     factory._service = None
+
+
+@pytest.fixture
+def mock_custom_config_location(tmp_path, mocker: pytest_mock.MockFixture):
+    fake_config_path = tmp_path / "pyproject.toml"
+    fake_config_path.write_text(fake_config_toml)
+    mocker.patch.dict(
+        "os.environ",
+        {"RESNAP_CONFIG_FILE": str(fake_config_path)},
+    )
+    yield
+    mocker.patch.dict("os.environ", clear=True)
+
+
+def test_get_config_test_should_read_config_from_custom_location(mock_custom_config_location, fake_config):
+    # When
+    res = factory.get_config()
+
+    # Then
+    assert res == fake_config
 
 
 def test_should_set_service() -> None:
@@ -41,8 +88,9 @@ def test_should_not_set_service_if_not_resnap_service() -> None:
         factory.set_resnap_service(custom_service)
 
 
-def test_should_raise_if_service_if_not_implemeted() -> None:
+def test_should_raise_if_service_if_not_implemented() -> None:
     # Given
+    factory.get_config()  # enforce the first load
     factory._resnap_config.save_to = "not_implemented"
 
     # When / Then
@@ -81,6 +129,7 @@ s3_secrets = {
 @patch("resnap.services.boto_service.load_file", return_value=s3_secrets)
 def test_should_return_boto_service_with_boto_extra(mock_find_spec: MagicMock, mock_load_file: MagicMock) -> None:
     # Given
+    factory.get_config()  # enforce the first load
     factory._resnap_config.save_to = "s3"
 
     # When
@@ -94,6 +143,7 @@ def test_should_return_boto_service_with_boto_extra(mock_find_spec: MagicMock, m
 @patch("resnap.services.boto_service.load_file", return_value=s3_secrets)
 def test_should_raise_without_boto_extra(mock_find_spec: MagicMock, mock_load_file: MagicMock) -> None:
     # Given
+    factory.get_config()  # enforce the first load
     factory._resnap_config.save_to = "s3"
 
     if "resnap.services.boto_service" in sys.modules:

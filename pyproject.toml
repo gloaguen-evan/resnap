@@ -33,7 +33,7 @@ dependencies = [
 [project.urls]
 Repository = "https://github.com/gloaguen-evan/resnap"
 Changelog = "https://github.com/gloaguen-evan/resnap/releases"
-Issues = "https://github.com/gloaguen-evan/issues"
+Issues = "https://github.com/gloaguen-evan/resnap/issues"
 
 [tool.black]
 line-length = 120

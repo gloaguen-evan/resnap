@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [0.3.0] - 2025-07-24
+## [0.4.0] - 2025-07-25
 ### Added
 - Add timezone parameter
 - All subclass of pd.Dataframe can be saved on parquet
@@ -18,6 +18,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 - Replace some if statements with match case
 - Fix some typos
+
+## [0.3.0] - 2025-07-25
+### Added
+- Set a custom config file location using the `RESNAP_CONFIG_FILE` env var
+
+### Changed
+- The global config instance is now lazy loaded
 
 ## [0.2.0] - 2025-06-19
 ### Added

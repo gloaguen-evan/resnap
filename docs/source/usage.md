@@ -33,6 +33,15 @@ resnap:
   cert_file_path: path_of_ca-certificate
 ```
 
+By default, Resnap automatically looks for the `pyproject.toml` file in your current working directory. 
+To specify a different location, use the `RESNAP_CONFIG_FILE` environment variable.
+Ex:
+```bash
+export RESNAP_CONFIG_FILE=/dev/run/pyproject.toml
+# or with a relative path:
+export RESNAP_CONFIG_FILE=config/pyproject.toml
+```
+
 ## 2. Basic Usage
 
 Next, decorate any deterministic or time-consuming function with `@resnap`. When the function is executed, its output is saved, and reused for subsequent calls with the same inputs.
