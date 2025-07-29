@@ -12,7 +12,7 @@ RESULT_PATH = Path(toml.load("pyproject.toml")["tool"]["resnap"]["output_base_pa
 
 def get_extra_metadata_in_resnap_file(key: str) -> dict[str, Any]:
     for f in RESULT_PATH.iterdir():
-        if not f.is_file() or not f.name.endswith(".resnap"):
+        if not f.is_file() or not f.name.endswith(".resnap_meta.json"):
             continue
         with open(f, "r") as json_file:
             metadata = json.load(json_file)

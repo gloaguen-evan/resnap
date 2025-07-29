@@ -17,6 +17,7 @@ secrets_file_name = ""                 # Path to secrets file (used by remote se
 enable_remove_old_files = true         # Automatically delete old files based on retention policy
 max_history_files_length = 3           # Duration value for file retention, used with max_history_files_time_unit
 max_history_files_time_unit = "day"    # Time unit used for history retention (e.g., 'second', 'minute', 'hour', 'day')
+timezone = "UTC+2"                     # Timezone used for time calculation
 ```
 
 💡 Notes

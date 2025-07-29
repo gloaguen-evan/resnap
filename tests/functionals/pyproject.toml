@@ -11,3 +11,4 @@ secrets_file_name = ""
 enable_remove_old_files = true
 max_history_files_length = 3
 max_history_files_time_unit = "second"
+timezone = "UTC"

@@ -75,6 +75,14 @@ resnap.helpers.status
    :show-inheritance:
    :undoc-members:
 
+resnap.helpers.time_utils
+---------------------------
+
+.. automodule:: resnap.helpers.time_utils
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 resnap.helpers.utils
 ---------------------------
 
